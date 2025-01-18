@@ -95,8 +95,8 @@ fun SetGoalScreen(
                 Slider(
                     value = selectedStreak.toFloat(),
                     onValueChange = { selectedStreak = it.toInt() },
-                    valueRange = 1f..30f,
-                    steps = 29,
+                    valueRange = 5f..30f,
+                    steps = 25,
                     modifier = Modifier.fillMaxWidth()
                 )
             }
