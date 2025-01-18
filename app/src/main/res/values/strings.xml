@@ -5,4 +5,14 @@
     <string name="set_sleep_goal">Set Sleep Goal</string>
     <string name="current_streak">Current Streak: %1$d days</string>
     <string name="encouraging_message">Keep up the good work! You\'re building great sleep habits!</string>
+    <string name="preferred_bed_time">Preferred Bed Time</string>
+    <string name="sleep_duration">Sleep Duration</string>
+    <string name="target_streak">Target Streak</string>
+    <string name="hours_value">%.1f hours</string>
+    <string name="days_value">%d days</string>
+    <string name="save_goal">Save Goal</string>
+    <string name="select_bed_time">Select Bed Time</string>
+    <string name="confirm">Confirm</string>
+    <string name="cancel">Cancel</string>
+    <string name="navigate_back">Navigate Back</string>
 </resources>
