@@ -12,19 +12,20 @@ import com.sleepbuddy.sleeptracker.data.database.SleepRecordEntity
 import com.sleepbuddy.sleeptracker.data.database.toSleepRecord
 import com.sleepbuddy.sleeptracker.data.database.SleepRecordDao
 import com.sleepbuddy.sleeptracker.data.MascotState
-import com.sleepbuddy.sleeptracker.data.MascotStateManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 import kotlinx.coroutines.delay
+import com.sleepbuddy.sleeptracker.data.ScheduledUpdate
+import com.sleepbuddy.sleeptracker.data.UpdateType
+import kotlinx.coroutines.Job
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
     private val database = SleepDatabase.getDatabase(application)
     private val dao = database.sleepRecordDao()
-    private val mascotManager = MascotStateManager()
 
     // Make sleepGoal private and create a public flow
     private val _sleepGoal = MutableStateFlow(SleepGoal())
@@ -40,26 +41,20 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     private val _mascotState = MutableStateFlow(MascotState.NEUTRAL)
     val mascotState = _mascotState.asStateFlow()
 
+    private var nextScheduledUpdate: ScheduledUpdate? = null
+    private var updateJob: Job? = null
+
     init {
         viewModelScope.launch {
             // Collect sleep goal updates from DataStore
             dataStore.sleepGoal.collect { goal ->
                 _sleepGoal.value = goal
-                // Update mascot state when sleep goal changes
-                updateMascotState()
+                scheduleNextBedtimeCheck(goal.bedTime)
             }
         }
 
         viewModelScope.launch {
             updateStreak()
-        }
-
-        viewModelScope.launch {
-            // Update mascot state periodically
-            while (true) {
-                updateMascotState()
-                delay(60000) // Update every minute
-            }
         }
     }
 
@@ -68,31 +63,74 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         _currentStreak.value = lastStreak
     }
 
-    private suspend fun updateMascotState() {
-        val currentTime = LocalDateTime.now()
-        val lastRecord = dao.getLastRecord()
-        val currentGoal = _sleepGoal.value  // Use the current goal from state
-
-        // Log the values being passed to getMascotState
-        println("""
-            Updating mascot state with:
-            Current Time: $currentTime
-            Target Bed Time: ${currentGoal.bedTime}
-            Is Tracking: ${trackingState.value.isTracking}
-            Current Streak: ${currentStreak.value}
-            Last Sleep Record: ${lastRecord?.toSleepRecord()}
-        """.trimIndent())
+    private fun scheduleNextBedtimeCheck(bedTime: LocalTime) {
+        updateJob?.cancel()
+        val now = LocalDateTime.now()
+        val bedTimePlusOneHour = bedTime.plusHours(1)
         
-        _mascotState.value = mascotManager.getMascotState(
-            currentTime = currentTime,
-            targetBedTime = currentGoal.bedTime,
-            isTracking = trackingState.value.isTracking,
-            currentStreak = currentStreak.value,
-            lastSleepRecord = lastRecord?.toSleepRecord(),
-            targetSleepDuration = (currentGoal.sleepDuration * 60).toInt() // Convert hours to minutes
-        )
+        // Calculate next bedtime check
+        var nextBedtimeCheck = now.with(bedTimePlusOneHour)
+        if (now.toLocalTime().isAfter(bedTimePlusOneHour)) {
+            nextBedtimeCheck = nextBedtimeCheck.plusDays(1)
+        }
 
-        println("""Mascot state: ${_mascotState.value} """)
+        scheduleUpdate(ScheduledUpdate(nextBedtimeCheck, UpdateType.BEDTIME_CHECK))
+    }
+
+    private fun schedulePostSleepUpdates(sleepEndTime: LocalDateTime) {
+        val neutralTime = sleepEndTime.plusHours(2)
+        val encouragingTime = sleepEndTime.plusHours(10)
+        
+        // Schedule the next immediate update
+        val now = LocalDateTime.now()
+        when {
+            now.isBefore(neutralTime) -> {
+                scheduleUpdate(ScheduledUpdate(neutralTime, UpdateType.POST_SLEEP_NEUTRAL))
+            }
+            now.isBefore(encouragingTime) -> {
+                scheduleUpdate(ScheduledUpdate(encouragingTime, UpdateType.DAYTIME_ENCOURAGING))
+            }
+            else -> {
+                scheduleNextBedtimeCheck(sleepGoal.value.bedTime)
+            }
+        }
+    }
+
+    private fun scheduleUpdate(update: ScheduledUpdate) {
+        updateJob?.cancel()
+        nextScheduledUpdate = update
+        
+        updateJob = viewModelScope.launch {
+            val delayMillis = java.time.Duration.between(LocalDateTime.now(), update.updateTime).toMillis()
+            if (delayMillis > 0) {
+                delay(delayMillis)
+                handleScheduledUpdate(update)
+            }
+        }
+    }
+
+    private suspend fun handleScheduledUpdate(update: ScheduledUpdate) {
+        when (update.updateType) {
+            UpdateType.POST_SLEEP_NEUTRAL -> {
+                _mascotState.value = MascotState.NEUTRAL
+                // Schedule next update (encouraging state)
+                scheduleUpdate(ScheduledUpdate(
+                    update.updateTime.plusHours(8),
+                    UpdateType.DAYTIME_ENCOURAGING
+                ))
+            }
+            UpdateType.DAYTIME_ENCOURAGING -> {
+                _mascotState.value = MascotState.ENCOURAGING
+                // Schedule next update (bedtime check)
+                scheduleNextBedtimeCheck(sleepGoal.value.bedTime)
+            }
+            UpdateType.BEDTIME_CHECK -> {
+                val isTracking = trackingState.value.isTracking
+                _mascotState.value = if (isTracking) MascotState.NEUTRAL else MascotState.ANGRY
+                // Schedule next day's bedtime check
+                scheduleNextBedtimeCheck(sleepGoal.value.bedTime)
+            }
+        }
     }
 
     fun startTracking() {
@@ -101,9 +139,6 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             isTracking = true,
             currentRecord = SleepRecord(startTime = startTime)
         )
-        viewModelScope.launch {
-            updateMascotState()
-        }
     }
 
     fun stopTracking() {
@@ -123,7 +158,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             val lastStreak = dao.getLastStreak() ?: 0
             val newStreak = if (isGoalMet) lastStreak + 1 else 0
 
-            // Save to database with updated streak
+            // Save to database
             dao.insert(
                 SleepRecordEntity(
                     startTime = currentRecord.startTime,
@@ -134,17 +169,19 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                 )
             )
 
-            // Log the sleep session
-            printSleepResults(
-                startTime = currentRecord.startTime,
-                endTime = endTime,
-                duration = duration,
-                isGoalMet = isGoalMet,
-                currentStreak = newStreak
-            )
-
-            // Update streak in UI
+            // Update streak
             _currentStreak.value = newStreak
+
+            // Update mascot state based on achievement
+            _mascotState.value = when {
+                newStreak >= 30 -> MascotState.SPECIAL
+                newStreak >= 7 -> MascotState.EXTREMELY_HAPPY
+                isGoalMet -> MascotState.HAPPY
+                else -> MascotState.ANGRY
+            }
+
+            // Schedule next updates
+            schedulePostSleepUpdates(endTime)
 
             // Update tracking state
             _trackingState.value = TrackingState(
@@ -155,7 +192,6 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                     isGoalMet = isGoalMet
                 )
             )
-            updateMascotState()
         }
     }
 
@@ -205,5 +241,10 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             dataStore.updateSleepGoal(newGoal)
             // No need to manually update _sleepGoal here as it will be updated through the DataStore collection
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        updateJob?.cancel()
     }
 } 
