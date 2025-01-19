@@ -167,7 +167,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     ): Boolean {
         val durationHours = duration.toMinutes() / 60.0f
         val targetDuration = goal.sleepDuration
-        
+
         // Check if duration is within acceptable range
         val isDurationValid = durationHours >= targetDuration && 
                             durationHours <= (targetDuration + 4)
@@ -177,7 +177,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         val targetBedTime = goal.bedTime
         
         // Allow 1 hour flexibility for bed time
-        val isStartTimeValid = sleepStartTime.plusHours(1) <= targetBedTime
+        val isStartTimeValid = sleepStartTime <= targetBedTime.plusHours(1)
 
         return isDurationValid && isStartTimeValid
     }
