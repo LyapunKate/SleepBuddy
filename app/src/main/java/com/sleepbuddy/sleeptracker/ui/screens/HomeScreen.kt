@@ -13,6 +13,7 @@ import com.sleepbuddy.sleeptracker.R
 import com.airbnb.lottie.compose.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sleepbuddy.sleeptracker.viewmodel.SleepGoalViewModel
+import com.sleepbuddy.sleeptracker.data.MascotState
 
 @Composable
 fun HomeScreen(
@@ -21,6 +22,7 @@ fun HomeScreen(
 ) {
     val trackingState by viewModel.trackingState.collectAsState()
     val currentStreak by viewModel.currentStreak.collectAsState()
+    val mascotState by viewModel.mascotState.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -47,6 +49,7 @@ fun HomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 MascotAnimation(
+                    mascotState = mascotState,
                     modifier = Modifier.fillMaxSize(1f)
                 )
             }
@@ -140,10 +143,11 @@ fun StreakProgress(
 
 @Composable
 fun MascotAnimation(
+    mascotState: MascotState,
     modifier: Modifier = Modifier
 ) {
     val composition by rememberLottieComposition(
-        LottieCompositionSpec.RawRes(R.raw.neutral_pet)
+        LottieCompositionSpec.RawRes(mascotState.animationRes)
     )
     val progress by animateLottieCompositionAsState(
         composition = composition,

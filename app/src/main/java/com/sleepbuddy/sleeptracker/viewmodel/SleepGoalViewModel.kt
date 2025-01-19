@@ -9,17 +9,22 @@ import com.sleepbuddy.sleeptracker.data.SleepRecord
 import com.sleepbuddy.sleeptracker.data.TrackingState
 import com.sleepbuddy.sleeptracker.data.database.SleepDatabase
 import com.sleepbuddy.sleeptracker.data.database.SleepRecordEntity
+import com.sleepbuddy.sleeptracker.data.database.toSleepRecord
 import com.sleepbuddy.sleeptracker.data.database.SleepRecordDao
+import com.sleepbuddy.sleeptracker.data.MascotState
+import com.sleepbuddy.sleeptracker.data.MascotStateManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
+import kotlinx.coroutines.delay
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
     private val database = SleepDatabase.getDatabase(application)
     private val dao = database.sleepRecordDao()
+    private val mascotManager = MascotStateManager()
 
     val sleepGoal = dataStore.sleepGoal.stateIn(
         scope = viewModelScope,
@@ -33,9 +38,20 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     private val _currentStreak = MutableStateFlow(0)
     val currentStreak = _currentStreak.asStateFlow()
 
+    // Add mascot state flow
+    private val _mascotState = MutableStateFlow(MascotState.NEUTRAL)
+    val mascotState = _mascotState.asStateFlow()
+
     init {
         viewModelScope.launch {
             updateStreak()
+        }
+        viewModelScope.launch {
+            // Update mascot state periodically
+            while (true) {
+                updateMascotState()
+                delay(60000) // Update every minute
+            }
         }
     }
 
@@ -44,12 +60,28 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         _currentStreak.value = lastStreak
     }
 
+    private suspend fun updateMascotState() {
+        val currentTime = LocalDateTime.now()
+        val lastRecord = dao.getLastRecord()
+        
+        _mascotState.value = mascotManager.getMascotState(
+            currentTime = currentTime,
+            targetBedTime = sleepGoal.value.bedTime,
+            isTracking = trackingState.value.isTracking,
+            currentStreak = currentStreak.value,
+            lastSleepRecord = lastRecord?.toSleepRecord()
+        )
+    }
+
     fun startTracking() {
         val startTime = LocalDateTime.now()
         _trackingState.value = TrackingState(
             isTracking = true,
             currentRecord = SleepRecord(startTime = startTime)
         )
+        viewModelScope.launch {
+            updateMascotState()
+        }
     }
 
     fun stopTracking() {
@@ -80,6 +112,15 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                 )
             )
 
+            // Log the sleep session
+            printSleepResults(
+                startTime = currentRecord.startTime,
+                endTime = endTime,
+                duration = duration,
+                isGoalMet = isGoalMet,
+                currentStreak = newStreak
+            )
+
             // Update streak in UI
             _currentStreak.value = newStreak
 
@@ -92,6 +133,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                     isGoalMet = isGoalMet
                 )
             )
+            updateMascotState()
         }
     }
 
@@ -122,7 +164,9 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         startTime: LocalDateTime,
         endTime: LocalDateTime,
         duration: Duration,
-        isGoalMet: Boolean
+        isGoalMet: Boolean,
+        currentStreak: Int
+
     ) {
         println("""
             Sleep Record:
@@ -130,6 +174,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             End Time: $endTime
             Duration: ${duration.toHours()} hours ${duration.toMinutesPart()} minutes
             Goal Met: $isGoalMet
+            Current Streak: $currentStreak
         """.trimIndent())
     }
 
