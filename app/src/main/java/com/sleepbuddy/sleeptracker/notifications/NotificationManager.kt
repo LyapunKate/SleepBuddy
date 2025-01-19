@@ -11,6 +11,7 @@ import com.sleepbuddy.sleeptracker.MainActivity
 import com.sleepbuddy.sleeptracker.R
 import java.time.LocalTime
 import kotlin.random.Random
+import com.sleepbuddy.sleeptracker.permissions.NotificationPermissionHandler
 
 class SleepNotificationManager(private val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -60,6 +61,10 @@ class SleepNotificationManager(private val context: Context) {
         message: String,
         notificationId: Int
     ) {
+        if (!NotificationPermissionHandler.hasNotificationPermission(context)) {
+            return
+        }
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }

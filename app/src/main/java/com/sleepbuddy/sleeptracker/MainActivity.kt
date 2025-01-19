@@ -13,10 +13,17 @@ import com.sleepbuddy.sleeptracker.ui.screens.HomeScreen
 import com.sleepbuddy.sleeptracker.ui.screens.SetGoalScreen
 import com.sleepbuddy.sleeptracker.ui.theme.SleepBuddyTheme
 import com.sleepbuddy.sleeptracker.viewmodel.SleepGoalViewModel
+import com.sleepbuddy.sleeptracker.permissions.NotificationPermissionHandler
 
 class MainActivity : ComponentActivity() {
+    private lateinit var notificationPermissionHandler: NotificationPermissionHandler
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        
+        notificationPermissionHandler = NotificationPermissionHandler(this)
+        notificationPermissionHandler.checkAndRequestNotificationPermission()
+
         enableEdgeToEdge()
         setContent {
             SleepBuddyTheme {
