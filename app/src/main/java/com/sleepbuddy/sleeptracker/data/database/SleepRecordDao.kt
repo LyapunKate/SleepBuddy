@@ -15,12 +15,6 @@ interface SleepRecordDao {
     @Query("SELECT * FROM sleep_records WHERE isGoalMet = 1 ORDER BY date DESC")
     fun getSuccessfulRecords(): Flow<List<SleepRecordEntity>>
 
-    @Query("""
-        SELECT COUNT(*) 
-        FROM sleep_records 
-        WHERE isGoalMet = 1 
-        AND date >= :startDate 
-        ORDER BY date DESC
-    """)
-    suspend fun getCurrentStreak(startDate: LocalDateTime): Int
+    @Query("SELECT currentStreak FROM sleep_records ORDER BY date DESC LIMIT 1")
+    suspend fun getLastStreak(): Int?
 } 

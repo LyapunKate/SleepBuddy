@@ -40,8 +40,8 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     private suspend fun updateStreak() {
-        val startDate = LocalDateTime.now().minusDays(30) // Look back 30 days max
-        _currentStreak.value = dao.getCurrentStreak(startDate)
+        val lastStreak = dao.getLastStreak() ?: 0
+        _currentStreak.value = lastStreak
     }
 
     fun startTracking() {
@@ -65,18 +65,23 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         )
 
         viewModelScope.launch {
-            // Save to database
+            // Calculate new streak based on goal achievement
+            val lastStreak = dao.getLastStreak() ?: 0
+            val newStreak = if (isGoalMet) lastStreak + 1 else 0
+
+            // Save to database with updated streak
             dao.insert(
                 SleepRecordEntity(
                     startTime = currentRecord.startTime,
                     endTime = endTime,
                     durationMinutes = duration.toMinutes(),
-                    isGoalMet = isGoalMet
+                    isGoalMet = isGoalMet,
+                    currentStreak = newStreak
                 )
             )
 
-            // Update streak
-            updateStreak()
+            // Update streak in UI
+            _currentStreak.value = newStreak
 
             // Update tracking state
             _trackingState.value = TrackingState(

@@ -14,6 +14,7 @@ data class SleepRecordEntity(
     val endTime: LocalDateTime,
     val durationMinutes: Long,
     val isGoalMet: Boolean,
+    val currentStreak: Int,
     val date: LocalDateTime = startTime
 )
 
