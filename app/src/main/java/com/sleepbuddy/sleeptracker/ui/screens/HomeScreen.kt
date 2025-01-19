@@ -20,7 +20,7 @@ fun HomeScreen(
     viewModel: SleepGoalViewModel = viewModel()
 ) {
     val trackingState by viewModel.trackingState.collectAsState()
-    val currentStreak = 5 // This will be replaced with actual data later
+    val currentStreak by viewModel.currentStreak.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

@@ -7,6 +7,9 @@ import com.sleepbuddy.sleeptracker.data.SleepGoal
 import com.sleepbuddy.sleeptracker.data.SleepGoalDataStore
 import com.sleepbuddy.sleeptracker.data.SleepRecord
 import com.sleepbuddy.sleeptracker.data.TrackingState
+import com.sleepbuddy.sleeptracker.data.database.SleepDatabase
+import com.sleepbuddy.sleeptracker.data.database.SleepRecordEntity
+import com.sleepbuddy.sleeptracker.data.database.SleepRecordDao
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.Duration
@@ -15,6 +18,8 @@ import java.time.LocalTime
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
+    private val database = SleepDatabase.getDatabase(application)
+    private val dao = database.sleepRecordDao()
 
     val sleepGoal = dataStore.sleepGoal.stateIn(
         scope = viewModelScope,
@@ -24,6 +29,20 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val _trackingState = MutableStateFlow(TrackingState())
     val trackingState = _trackingState.asStateFlow()
+
+    private val _currentStreak = MutableStateFlow(0)
+    val currentStreak = _currentStreak.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            updateStreak()
+        }
+    }
+
+    private suspend fun updateStreak() {
+        val startDate = LocalDateTime.now().minusDays(30) // Look back 30 days max
+        _currentStreak.value = dao.getCurrentStreak(startDate)
+    }
 
     fun startTracking() {
         val startTime = LocalDateTime.now()
@@ -45,23 +64,30 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             goal = sleepGoal.value
         )
 
-        _trackingState.value = TrackingState(
-            isTracking = false,
-            currentRecord = currentRecord.copy(
-                endTime = endTime,
-                duration = duration,
-                isGoalMet = isGoalMet
+        viewModelScope.launch {
+            // Save to database
+            dao.insert(
+                SleepRecordEntity(
+                    startTime = currentRecord.startTime,
+                    endTime = endTime,
+                    durationMinutes = duration.toMinutes(),
+                    isGoalMet = isGoalMet
+                )
             )
-        )
 
-        // Here you would save the sleep record to a database
-        // For now, we'll just print the results
-        printSleepResults(
-            startTime = currentRecord.startTime,
-            endTime = endTime,
-            duration = duration,
-            isGoalMet = isGoalMet
-        )
+            // Update streak
+            updateStreak()
+
+            // Update tracking state
+            _trackingState.value = TrackingState(
+                isTracking = false,
+                currentRecord = currentRecord.copy(
+                    endTime = endTime,
+                    duration = duration,
+                    isGoalMet = isGoalMet
+                )
+            )
+        }
     }
 
     private fun checkGoalMet(
