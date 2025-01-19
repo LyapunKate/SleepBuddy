@@ -11,12 +11,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sleepbuddy.sleeptracker.R
 import com.airbnb.lottie.compose.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.sleepbuddy.sleeptracker.viewmodel.SleepGoalViewModel
 
 @Composable
 fun HomeScreen(
-    onSetGoalClick: () -> Unit
+    onSetGoalClick: () -> Unit,
+    viewModel: SleepGoalViewModel = viewModel()
 ) {
-    var isTracking by remember { mutableStateOf(false) }
+    val trackingState by viewModel.trackingState.collectAsState()
     val currentStreak = 5 // This will be replaced with actual data later
 
     Scaffold(
@@ -44,7 +47,7 @@ fun HomeScreen(
                 contentAlignment = Alignment.Center
             ) {
                 MascotAnimation(
-                    modifier = Modifier.fillMaxSize(0.8f)
+                    modifier = Modifier.fillMaxSize(1f)
                 )
             }
 
@@ -58,13 +61,19 @@ fun HomeScreen(
 
                 // Tracking button
                 Button(
-                    onClick = { isTracking = !isTracking },
+                    onClick = { 
+                        if (trackingState.isTracking) {
+                            viewModel.stopTracking()
+                        } else {
+                            viewModel.startTracking()
+                        }
+                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp)
                 ) {
                     Text(
-                        text = if (isTracking) 
+                        text = if (trackingState.isTracking) 
                             stringResource(R.string.stop_tracking)
                         else 
                             stringResource(R.string.start_tracking)
