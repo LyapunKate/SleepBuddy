@@ -21,11 +21,13 @@ import kotlinx.coroutines.delay
 import com.sleepbuddy.sleeptracker.data.ScheduledUpdate
 import com.sleepbuddy.sleeptracker.data.UpdateType
 import kotlinx.coroutines.Job
+import com.sleepbuddy.sleeptracker.notifications.SleepNotificationManager
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
     private val database = SleepDatabase.getDatabase(application)
     private val dao = database.sleepRecordDao()
+    private val notificationManager = SleepNotificationManager(application)
 
     // Make sleepGoal private and create a public flow
     private val _sleepGoal = MutableStateFlow(SleepGoal())
@@ -43,13 +45,14 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
     private var nextScheduledUpdate: ScheduledUpdate? = null
     private var updateJob: Job? = null
+    private var notificationJob: Job? = null
 
     init {
         viewModelScope.launch {
-            // Collect sleep goal updates from DataStore
             dataStore.sleepGoal.collect { goal ->
                 _sleepGoal.value = goal
                 scheduleNextBedtimeCheck(goal.bedTime)
+                scheduleNotifications(goal.bedTime)
             }
         }
 
@@ -133,7 +136,65 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         }
     }
 
+    private fun scheduleNotifications(bedTime: LocalTime) {
+        notificationJob?.cancel()
+        
+        notificationJob = viewModelScope.launch {
+            while (true) {
+                val now = LocalDateTime.now()
+                val today = now.toLocalDate()
+                
+                // Calculate notification times for today
+                val hourBefore = today.atTime(bedTime.minusHours(1))
+                val halfHourBefore = today.atTime(bedTime.minusMinutes(30))
+                val atBedtime = today.atTime(bedTime)
+                
+                // Adjust to tomorrow if times have passed
+                val adjustedHourBefore = if (now.isAfter(hourBefore)) {
+                    hourBefore.plusDays(1)
+                } else hourBefore
+                
+                val adjustedHalfHourBefore = if (now.isAfter(halfHourBefore)) {
+                    halfHourBefore.plusDays(1)
+                } else halfHourBefore
+                
+                val adjustedBedtime = if (now.isAfter(atBedtime)) {
+                    atBedtime.plusDays(1)
+                } else atBedtime
+
+                // Schedule notifications
+                if (!trackingState.value.isTracking) {
+                    val delayToHourBefore = Duration.between(now, adjustedHourBefore)
+                    val delayToHalfHour = Duration.between(now, adjustedHalfHourBefore)
+                    val delayToBedtime = Duration.between(now, adjustedBedtime)
+
+                    // Schedule hour before notification
+                    delay(delayToHourBefore.toMillis())
+                    if (!trackingState.value.isTracking) {
+                        notificationManager.showHourBeforeNotification(bedTime)
+                    }
+
+                    // Schedule half hour notification
+                    delay(delayToHalfHour.minus(delayToHourBefore).toMillis())
+                    if (!trackingState.value.isTracking) {
+                        notificationManager.showHalfHourNotification(bedTime)
+                    }
+
+                    // Schedule bedtime notification
+                    delay(delayToBedtime.minus(delayToHalfHour).toMillis())
+                    if (!trackingState.value.isTracking) {
+                        notificationManager.showBedtimeNotification()
+                    }
+                }
+
+                // Wait until next day
+                delay(Duration.between(now, adjustedBedtime.plusDays(1)).toMillis())
+            }
+        }
+    }
+
     fun startTracking() {
+        notificationManager.cancelAllNotifications()
         val startTime = LocalDateTime.now()
         _trackingState.value = TrackingState(
             isTracking = true,
@@ -246,5 +307,6 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     override fun onCleared() {
         super.onCleared()
         updateJob?.cancel()
+        notificationJob?.cancel()
     }
 } 
