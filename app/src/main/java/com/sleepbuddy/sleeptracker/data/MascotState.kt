@@ -1,6 +1,7 @@
 package com.sleepbuddy.sleeptracker.data
 
 import com.sleepbuddy.sleeptracker.R
+import java.time.Duration
 import java.time.LocalDateTime
 import java.time.LocalTime
 
@@ -17,6 +18,7 @@ class MascotStateManager {
     fun getMascotState(
         currentTime: LocalDateTime,
         targetBedTime: LocalTime,
+        targetSleepDuration: Int,
         isTracking: Boolean,
         currentStreak: Int,
         lastSleepRecord: SleepRecord?
@@ -32,7 +34,8 @@ class MascotStateManager {
         }
 
         // Morning state (until 11 AM)
-        if (currentTimeOfDay.isBefore(LocalTime.of(11, 0))) {
+        val bedTimePlusSleepDurHours = targetBedTime.plusMinutes(targetSleepDuration.toLong())
+        if (currentTimeOfDay.isBefore(LocalTime.of(11, 0)) && currentTimeOfDay.isAfter(bedTimePlusSleepDurHours)) {
             return if (lastSleepRecord?.isGoalMet == true) {
                 MascotState.HAPPY
             } else {
@@ -41,7 +44,7 @@ class MascotStateManager {
         }
 
         // Daytime state (11 AM to 7 PM)
-        if (currentTimeOfDay.isBefore(LocalTime.of(19, 0))) {
+        if (currentTimeOfDay.isBefore(LocalTime.of(19, 0)) && currentTimeOfDay.isAfter(LocalTime.of(11, 0))) {
             return MascotState.NEUTRAL
         }
 
@@ -51,8 +54,15 @@ class MascotStateManager {
             return MascotState.ENCOURAGING
         }
 
+        println("""bedtimePlusOneHour: $bedTimePlusOneHour
+            currentTime: $currentTimeOfDay
+            isAfter: ${currentTimeOfDay.isAfter(bedTimePlusOneHour)}
+            isTracking: $isTracking
+            AngryCheck: ${currentTimeOfDay.isAfter(bedTimePlusOneHour) && (!isTracking)}
+        """.trimMargin())
+
         // Post-Bedtime state
-        return if (!isTracking) {
+        return if (currentTimeOfDay.isAfter(bedTimePlusOneHour) && (!isTracking)) {
             MascotState.ANGRY
         } else {
             MascotState.NEUTRAL

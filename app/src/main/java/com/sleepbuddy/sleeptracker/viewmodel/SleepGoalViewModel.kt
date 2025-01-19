@@ -26,11 +26,9 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     private val dao = database.sleepRecordDao()
     private val mascotManager = MascotStateManager()
 
-    val sleepGoal = dataStore.sleepGoal.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = SleepGoal()
-    )
+    // Make sleepGoal private and create a public flow
+    private val _sleepGoal = MutableStateFlow(SleepGoal())
+    val sleepGoal = _sleepGoal.asStateFlow()
 
     private val _trackingState = MutableStateFlow(TrackingState())
     val trackingState = _trackingState.asStateFlow()
@@ -44,8 +42,18 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
     init {
         viewModelScope.launch {
+            // Collect sleep goal updates from DataStore
+            dataStore.sleepGoal.collect { goal ->
+                _sleepGoal.value = goal
+                // Update mascot state when sleep goal changes
+                updateMascotState()
+            }
+        }
+
+        viewModelScope.launch {
             updateStreak()
         }
+
         viewModelScope.launch {
             // Update mascot state periodically
             while (true) {
@@ -63,14 +71,28 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     private suspend fun updateMascotState() {
         val currentTime = LocalDateTime.now()
         val lastRecord = dao.getLastRecord()
+        val currentGoal = _sleepGoal.value  // Use the current goal from state
+
+        // Log the values being passed to getMascotState
+        println("""
+            Updating mascot state with:
+            Current Time: $currentTime
+            Target Bed Time: ${currentGoal.bedTime}
+            Is Tracking: ${trackingState.value.isTracking}
+            Current Streak: ${currentStreak.value}
+            Last Sleep Record: ${lastRecord?.toSleepRecord()}
+        """.trimIndent())
         
         _mascotState.value = mascotManager.getMascotState(
             currentTime = currentTime,
-            targetBedTime = sleepGoal.value.bedTime,
+            targetBedTime = currentGoal.bedTime,
             isTracking = trackingState.value.isTracking,
             currentStreak = currentStreak.value,
-            lastSleepRecord = lastRecord?.toSleepRecord()
+            lastSleepRecord = lastRecord?.toSleepRecord(),
+            targetSleepDuration = (currentGoal.sleepDuration * 60).toInt() // Convert hours to minutes
         )
+
+        println("""Mascot state: ${_mascotState.value} """)
     }
 
     fun startTracking() {
@@ -181,6 +203,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     fun updateSleepGoal(newGoal: SleepGoal) {
         viewModelScope.launch {
             dataStore.updateSleepGoal(newGoal)
+            // No need to manually update _sleepGoal here as it will be updated through the DataStore collection
         }
     }
 } 
