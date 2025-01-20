@@ -17,10 +17,6 @@ class NotificationReceiver : BroadcastReceiver() {
         val trackingPrefs = context.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
         val isTracking = trackingPrefs.getBoolean("is_tracking", false)
 
-        if (isTracking) {
-            return // Don't show notifications while tracking
-        }
-
         // Add logging to help debug notification timing
         val now = LocalDateTime.now()
         println("Notification received at: $now")
@@ -28,6 +24,28 @@ class NotificationReceiver : BroadcastReceiver() {
 
         val bedTimeStr = intent.getStringExtra(BEDTIME) ?: return
         val bedTime = LocalTime.parse(bedTimeStr)
+
+        if (isTracking) {
+            println("""NotificationReciever, isTracking = true""")
+
+            when (intent.getStringExtra(NOTIFICATION_TYPE)) {
+                NotificationType.HOUR_BEFORE.name -> {
+                    // Schedule next day's notification
+                    notificationManager.scheduleNextNotification(NotificationType.HOUR_BEFORE, bedTime)
+                }
+                NotificationType.HALF_HOUR_BEFORE.name -> {
+                    // Schedule next day's notification
+                    notificationManager.scheduleNextNotification(NotificationType.HALF_HOUR_BEFORE, bedTime)
+                }
+                NotificationType.BEDTIME.name -> {
+                    // Schedule next day's notification
+                    notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
+                }
+            }
+
+            return // Don't show notifications while tracking
+        }
+
 
         when (intent.getStringExtra(NOTIFICATION_TYPE)) {
             NotificationType.HOUR_BEFORE.name -> {
