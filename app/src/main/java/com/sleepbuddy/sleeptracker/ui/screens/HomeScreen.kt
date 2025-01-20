@@ -14,13 +14,17 @@ import com.airbnb.lottie.compose.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sleepbuddy.sleeptracker.viewmodel.SleepGoalViewModel
 import com.sleepbuddy.sleeptracker.data.MascotState
+import android.content.Context
+import com.sleepbuddy.sleeptracker.ui.utils.rememberPreference
+import androidx.compose.ui.platform.LocalContext
 
 @Composable
 fun HomeScreen(
     onSetGoalClick: () -> Unit,
     viewModel: SleepGoalViewModel = viewModel()
 ) {
-    val trackingState by viewModel.trackingState.collectAsState()
+    val context = LocalContext.current
+    val isTracking = rememberPreference("is_tracking", false)
     val currentStreak by viewModel.currentStreak.collectAsState()
     val mascotState by viewModel.mascotState.collectAsState()
 
@@ -65,7 +69,8 @@ fun HomeScreen(
                 // Tracking button
                 Button(
                     onClick = { 
-                        if (trackingState.isTracking) {
+                        val prefs = context.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
+                        if (isTracking.value) {
                             viewModel.stopTracking()
                         } else {
                             viewModel.startTracking()
@@ -76,7 +81,7 @@ fun HomeScreen(
                         .height(56.dp)
                 ) {
                     Text(
-                        text = if (trackingState.isTracking) 
+                        text = if (isTracking.value) 
                             stringResource(R.string.stop_tracking)
                         else 
                             stringResource(R.string.start_tracking)
