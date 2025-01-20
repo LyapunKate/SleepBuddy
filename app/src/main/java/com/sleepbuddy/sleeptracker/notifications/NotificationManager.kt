@@ -21,7 +21,9 @@ enum class NotificationType {
     HOUR_BEFORE,
     HALF_HOUR_BEFORE,
     BEDTIME,
-    STOP_TRACKING_REMINDER
+    STOP_TRACKING_REMINDER,
+    FIVE_AFTER_BEDTIME,
+    FIFTY_FIVE_AFTER_BEDTIME
 }
 
 class SleepNotificationManager(private val context: Context) {
@@ -53,6 +55,16 @@ class SleepNotificationManager(private val context: Context) {
         private val STOP_TRACKING_MESSAGES = listOf(
             "Good morning! ☀️ Don't forget to press 'Stop' to log your sleep.",
             "Rise and shine! Your dog wants to know how you slept—press 'Stop' to finish tracking."
+        )
+
+        private val FIVE_AFTER_BEDTIME_MESSAGES = listOf(
+            "Uh-oh, it's past your bedtime! 😔 You've still got a chance to save your streak—head to bed now!",
+            "Your streak is on thin ice! 🐶 Go to bed within the next hour to keep it alive. Your dog believes in you!"
+        )
+
+        private val FIFTY_FIVE_AFTER_BEDTIME_MESSAGES = listOf(
+            "Your dog looks worried... 🐾 It's not too late to save your streak! Go to bed now before it resets.",
+            "Time's almost up! 💤 Get some rest to keep that streak going strong!"
         )
     }
 
@@ -154,6 +166,8 @@ class SleepNotificationManager(private val context: Context) {
         var hourBefore = today.atTime(bedTime.minusHours(1))
         var halfHourBefore = today.atTime(bedTime.minusMinutes(30))
         var atBedtime = today.atTime(bedTime)
+        var fiveAfter = today.atTime(bedTime.plusMinutes(5))
+        var fiftyFiveAfter = today.atTime(bedTime.plusMinutes(55))
 
         // If times have passed for today, schedule for tomorrow
         if (now.isAfter(hourBefore)) {
@@ -165,6 +179,12 @@ class SleepNotificationManager(private val context: Context) {
         if (now.isAfter(atBedtime)) {
             atBedtime = atBedtime.plusDays(1)
         }
+        if (now.isAfter(fiveAfter)) {
+            fiveAfter = fiveAfter.plusDays(1)
+        }
+        if (now.isAfter(fiftyFiveAfter)) {
+            fiftyFiveAfter = fiftyFiveAfter.plusDays(1)
+        }
 
         // Save bedtime in preferences for boot receiver
         context.getSharedPreferences("sleep_settings", Context.MODE_PRIVATE)
@@ -175,6 +195,8 @@ class SleepNotificationManager(private val context: Context) {
         scheduleExactNotification(hourBefore, NotificationType.HOUR_BEFORE, bedTime)
         scheduleExactNotification(halfHourBefore, NotificationType.HALF_HOUR_BEFORE, bedTime)
         scheduleExactNotification(atBedtime, NotificationType.BEDTIME, bedTime)
+        scheduleExactNotification(fiveAfter, NotificationType.FIVE_AFTER_BEDTIME, bedTime)
+        scheduleExactNotification(fiftyFiveAfter, NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
     }
 
     fun scheduleExactNotification(
@@ -221,6 +243,8 @@ class SleepNotificationManager(private val context: Context) {
             NotificationType.HOUR_BEFORE -> tomorrow.atTime(bedTime.minusHours(1))
             NotificationType.HALF_HOUR_BEFORE -> tomorrow.atTime(bedTime.minusMinutes(30))
             NotificationType.BEDTIME -> tomorrow.atTime(bedTime)
+            NotificationType.FIVE_AFTER_BEDTIME -> tomorrow.atTime(bedTime.plusMinutes(5))
+            NotificationType.FIFTY_FIVE_AFTER_BEDTIME -> tomorrow.atTime(bedTime.plusMinutes(55))
             NotificationType.STOP_TRACKING_REMINDER -> return
         }
 
@@ -254,6 +278,26 @@ class SleepNotificationManager(private val context: Context) {
             "Time to Stop Tracking",
             message,
             4 // unique ID for stop tracking reminder
+        )
+    }
+
+    fun showFiveAfterBedtimeNotification() {
+        val message = FIVE_AFTER_BEDTIME_MESSAGES[Random.nextInt(FIVE_AFTER_BEDTIME_MESSAGES.size)]
+        
+        buildNotification(
+            "Bedtime Passed",
+            message,
+            5 // unique ID for 5 minutes after bedtime notification
+        )
+    }
+
+    fun showFiftyFiveAfterBedtimeNotification() {
+        val message = FIFTY_FIVE_AFTER_BEDTIME_MESSAGES[Random.nextInt(FIFTY_FIVE_AFTER_BEDTIME_MESSAGES.size)]
+        
+        buildNotification(
+            "Last Chance for Streak",
+            message,
+            6 // unique ID for 55 minutes after bedtime notification
         )
     }
 } 

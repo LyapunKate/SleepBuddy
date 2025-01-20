@@ -44,6 +44,12 @@ class NotificationReceiver : BroadcastReceiver() {
                 NotificationType.STOP_TRACKING_REMINDER.name -> {
                     notificationManager.showStopTrackingReminder()
                 }
+                NotificationType.FIVE_AFTER_BEDTIME.name -> {
+                    notificationManager.scheduleNextNotification(NotificationType.FIVE_AFTER_BEDTIME, bedTime)
+                }
+                NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
+                    notificationManager.scheduleNextNotification(NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
+                }
             }
 
             return // Don't show notifications while tracking
@@ -65,6 +71,14 @@ class NotificationReceiver : BroadcastReceiver() {
                 notificationManager.showBedtimeNotification()
                 // Schedule next day's notification
                 notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
+            }
+            NotificationType.FIVE_AFTER_BEDTIME.name -> {
+                notificationManager.showFiveAfterBedtimeNotification()
+                notificationManager.scheduleNextNotification(NotificationType.FIVE_AFTER_BEDTIME, bedTime)
+            }
+            NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
+                notificationManager.showFiftyFiveAfterBedtimeNotification()
+                notificationManager.scheduleNextNotification(NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
             }
         }
     }
