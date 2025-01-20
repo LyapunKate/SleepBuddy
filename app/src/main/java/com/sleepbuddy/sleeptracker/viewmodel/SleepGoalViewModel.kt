@@ -51,8 +51,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             dataStore.sleepGoal.collect { goal ->
                 _sleepGoal.value = goal
-                scheduleNextBedtimeCheck(goal.bedTime)
-                scheduleNotifications(goal.bedTime)
+                notificationManager.scheduleNotifications(goal.bedTime)
             }
         }
 
@@ -148,6 +147,8 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                 val hourBefore = today.atTime(bedTime.minusHours(1))
                 val halfHourBefore = today.atTime(bedTime.minusMinutes(30))
                 val atBedtime = today.atTime(bedTime)
+
+                println("""hourbefore: $hourBefore, halfHourBefore: $halfHourBefore, atbedtime: $atBedtime""")
                 
                 // Adjust to tomorrow if times have passed
                 val adjustedHourBefore = if (now.isAfter(hourBefore)) {
@@ -194,7 +195,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun startTracking() {
-        notificationManager.cancelAllNotifications()
+        notificationManager.updateTrackingState(true)
         val startTime = LocalDateTime.now()
         _trackingState.value = TrackingState(
             isTracking = true,
@@ -203,6 +204,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun stopTracking() {
+        notificationManager.updateTrackingState(false)
         val currentRecord = _trackingState.value.currentRecord ?: return
         val endTime = LocalDateTime.now()
         val duration = Duration.between(currentRecord.startTime, endTime)

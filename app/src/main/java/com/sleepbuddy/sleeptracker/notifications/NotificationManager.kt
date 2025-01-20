@@ -1,5 +1,6 @@
 package com.sleepbuddy.sleeptracker.notifications
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -9,12 +10,22 @@ import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.sleepbuddy.sleeptracker.MainActivity
 import com.sleepbuddy.sleeptracker.R
+import java.time.LocalDateTime
 import java.time.LocalTime
+import java.time.ZoneId
 import kotlin.random.Random
 import com.sleepbuddy.sleeptracker.permissions.NotificationPermissionHandler
 
+enum class NotificationType {
+    HOUR_BEFORE,
+    HALF_HOUR_BEFORE,
+    BEDTIME
+}
+
 class SleepNotificationManager(private val context: Context) {
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+    private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+    private val trackingPrefs = context.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
     
     companion object {
         private const val CHANNEL_ID = "sleep_reminders"
@@ -82,6 +93,7 @@ class SleepNotificationManager(private val context: Context) {
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
@@ -123,5 +135,84 @@ class SleepNotificationManager(private val context: Context) {
 
     fun cancelAllNotifications() {
         notificationManager.cancelAll()
+    }
+
+    fun scheduleNotifications(bedTime: LocalTime) {
+        cancelAllAlarms()
+        
+        val now = LocalDateTime.now()
+        val today = now.toLocalDate()
+        
+        // Calculate notification times
+        var hourBefore = today.atTime(bedTime.minusHours(1))
+        var halfHourBefore = today.atTime(bedTime.minusMinutes(30))
+        var atBedtime = today.atTime(bedTime)
+        
+        // If times have passed for today, schedule for tomorrow
+        if (now.isAfter(hourBefore)) {
+            hourBefore = hourBefore.plusDays(1)
+            halfHourBefore = halfHourBefore.plusDays(1)
+            atBedtime = atBedtime.plusDays(1)
+        }
+
+        scheduleNotification(hourBefore, NotificationType.HOUR_BEFORE, bedTime)
+        scheduleNotification(halfHourBefore, NotificationType.HALF_HOUR_BEFORE, bedTime)
+        scheduleNotification(atBedtime, NotificationType.BEDTIME, bedTime)
+    }
+
+    private fun scheduleNotification(
+        time: LocalDateTime,
+        type: NotificationType,
+        bedTime: LocalTime
+    ) {
+        val intent = Intent(context, NotificationReceiver::class.java).apply {
+            putExtra(NotificationReceiver.NOTIFICATION_TYPE, type.name)
+            putExtra(NotificationReceiver.BEDTIME, bedTime.toString())
+        }
+
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            type.ordinal,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val triggerAtMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+                )
+            }
+        } else {
+            alarmManager.setExactAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                triggerAtMillis,
+                pendingIntent
+            )
+        }
+    }
+
+    private fun cancelAllAlarms() {
+        NotificationType.values().forEach { type ->
+            val intent = Intent(context, NotificationReceiver::class.java)
+            val pendingIntent = PendingIntent.getBroadcast(
+                context,
+                type.ordinal,
+                intent,
+                PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
+            )
+            pendingIntent?.let { alarmManager.cancel(it) }
+        }
+    }
+
+    fun updateTrackingState(isTracking: Boolean) {
+        trackingPrefs.edit().putBoolean("is_tracking", isTracking).apply()
+        if (isTracking) {
+            cancelAllNotifications()
+        }
     }
 } 
