@@ -26,19 +26,24 @@ class NotificationReceiver : BroadcastReceiver() {
         println("Notification received at: $now")
         println("Notification type: ${intent.getStringExtra(NOTIFICATION_TYPE)}")
 
+        val bedTimeStr = intent.getStringExtra(BEDTIME) ?: return
+        val bedTime = LocalTime.parse(bedTimeStr)
+
         when (intent.getStringExtra(NOTIFICATION_TYPE)) {
             NotificationType.HOUR_BEFORE.name -> {
-                val bedTimeStr = intent.getStringExtra(BEDTIME) ?: return
-                val bedTime = LocalTime.parse(bedTimeStr)
                 notificationManager.showHourBeforeNotification(bedTime)
+                // Schedule next day's notification
+                notificationManager.scheduleNextNotification(NotificationType.HOUR_BEFORE, bedTime)
             }
             NotificationType.HALF_HOUR_BEFORE.name -> {
-                val bedTimeStr = intent.getStringExtra(BEDTIME) ?: return
-                val bedTime = LocalTime.parse(bedTimeStr)
                 notificationManager.showHalfHourNotification(bedTime)
+                // Schedule next day's notification
+                notificationManager.scheduleNextNotification(NotificationType.HALF_HOUR_BEFORE, bedTime)
             }
             NotificationType.BEDTIME.name -> {
                 notificationManager.showBedtimeNotification()
+                // Schedule next day's notification
+                notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
             }
         }
     }

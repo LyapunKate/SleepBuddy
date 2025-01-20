@@ -166,18 +166,16 @@ class SleepNotificationManager(private val context: Context) {
             .putString("bedtime", bedTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
             .apply()
 
-        scheduleRepeatingNotification(hourBefore, NotificationType.HOUR_BEFORE, bedTime)
-        scheduleRepeatingNotification(halfHourBefore, NotificationType.HALF_HOUR_BEFORE, bedTime)
-        scheduleRepeatingNotification(atBedtime, NotificationType.BEDTIME, bedTime)
+        scheduleExactNotification(hourBefore, NotificationType.HOUR_BEFORE, bedTime)
+        scheduleExactNotification(halfHourBefore, NotificationType.HALF_HOUR_BEFORE, bedTime)
+        scheduleExactNotification(atBedtime, NotificationType.BEDTIME, bedTime)
     }
 
-    private fun scheduleRepeatingNotification(
-        firstTime: LocalDateTime,
+    private fun scheduleExactNotification(
+        time: LocalDateTime,
         type: NotificationType,
         bedTime: LocalTime
     ) {
-
-        println("""scheduleRepeatingNotification $type""")
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra(NotificationReceiver.NOTIFICATION_TYPE, type.name)
             putExtra(NotificationReceiver.BEDTIME, bedTime.toString())
@@ -190,28 +188,36 @@ class SleepNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val triggerAtMillis = firstTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
-        val intervalMillis = AlarmManager.INTERVAL_DAY // 24 hours
-
-        println("""$type, $firstTime""")
+        val triggerAtMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setRepeating(
+                alarmManager.setExactAndAllowWhileIdle(
                     AlarmManager.RTC_WAKEUP,
                     triggerAtMillis,
-                    intervalMillis,
                     pendingIntent
                 )
             }
         } else {
-            alarmManager.setRepeating(
+            alarmManager.setExactAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
-                intervalMillis,
                 pendingIntent
             )
         }
+
+        println("Scheduled ${type.name} notification for: $time")
+    }
+
+    fun scheduleNextNotification(type: NotificationType, bedTime: LocalTime) {
+        val tomorrow = LocalDateTime.now().plusDays(1).toLocalDate()
+        val nextTime = when (type) {
+            NotificationType.HOUR_BEFORE -> tomorrow.atTime(bedTime.minusHours(1))
+            NotificationType.HALF_HOUR_BEFORE -> tomorrow.atTime(bedTime.minusMinutes(30))
+            NotificationType.BEDTIME -> tomorrow.atTime(bedTime)
+        }
+
+        scheduleExactNotification(nextTime, type, bedTime)
     }
 
     private fun cancelAllAlarms() {
