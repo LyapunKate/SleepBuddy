@@ -17,6 +17,10 @@ import com.sleepbuddy.sleeptracker.data.MascotState
 import android.content.Context
 import com.sleepbuddy.sleeptracker.ui.utils.rememberPreference
 import androidx.compose.ui.platform.LocalContext
+import com.sleepbuddy.sleeptracker.ui.utils.rememberSleepStartTime
+import java.time.Duration
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 @Composable
 fun HomeScreen(
@@ -25,6 +29,7 @@ fun HomeScreen(
 ) {
     val context = LocalContext.current
     val isTracking = rememberPreference("is_tracking", false)
+    val sleepStartTime = rememberSleepStartTime()
     val currentStreak by viewModel.currentStreak.collectAsState()
     val mascotState by viewModel.mascotState.collectAsState()
 
@@ -55,6 +60,15 @@ fun HomeScreen(
                 MascotAnimation(
                     mascotState = mascotState,
                     modifier = Modifier.fillMaxSize(1f)
+                )
+            }
+
+            // Sleep time info
+            sleepStartTime.value?.let { startTime ->
+                SleepTimeInfo(
+                    startTime = startTime,
+                    isTracking = isTracking.value,
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -164,4 +178,44 @@ fun MascotAnimation(
         progress = { progress },
         modifier = modifier
     )
+}
+
+@Composable
+fun SleepTimeInfo(
+    startTime: LocalDateTime,
+    isTracking: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val now = LocalDateTime.now()
+    val duration = Duration.between(startTime, now)
+    
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.secondaryContainer,
+        tonalElevation = 2.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = "Sleep Start: ${startTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
+                style = MaterialTheme.typography.bodyLarge
+            )
+            
+            if (isTracking) {
+                Text(
+                    text = "Current Duration: ${formatDuration(duration)}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            }
+        }
+    }
+}
+
+private fun formatDuration(duration: Duration): String {
+    val hours = duration.toHours()
+    val minutes = duration.toMinutesPart()
+    return String.format("%d hours %02d minutes", hours, minutes)
 } 

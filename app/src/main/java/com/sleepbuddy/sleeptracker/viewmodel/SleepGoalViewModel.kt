@@ -20,6 +20,7 @@ import com.sleepbuddy.sleeptracker.data.ScheduledUpdate
 import com.sleepbuddy.sleeptracker.data.UpdateType
 import kotlinx.coroutines.Job
 import com.sleepbuddy.sleeptracker.notifications.SleepNotificationManager
+import android.content.Context
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
@@ -44,6 +45,8 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     private var nextScheduledUpdate: ScheduledUpdate? = null
     private var updateJob: Job? = null
     private var notificationJob: Job? = null
+
+    private val trackingPrefs = application.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
 
     init {
         viewModelScope.launch {
@@ -135,22 +138,34 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     }
 
     fun startTracking() {
-        notificationManager.updateTrackingState(true)
         val startTime = LocalDateTime.now()
-        _trackingState.value = TrackingState(
-            isTracking = true,
-            currentRecord = SleepRecord(startTime = startTime)
-        )
+        // Save start time to preferences
+        trackingPrefs.edit()
+            .putString("sleep_start_time", startTime.toString())
+            .putBoolean("is_tracking", true)
+            .apply()
+
+        notificationManager.updateTrackingState(true)
     }
 
     fun stopTracking() {
-        notificationManager.updateTrackingState(false)
-        val currentRecord = _trackingState.value.currentRecord ?: return
+        // Get start time from preferences
+        val startTimeStr = trackingPrefs.getString("sleep_start_time", null)
+        val startTime = startTimeStr?.let { LocalDateTime.parse(it) } ?: return
+
         val endTime = LocalDateTime.now()
-        val duration = Duration.between(currentRecord.startTime, endTime)
+        val duration = Duration.between(startTime, endTime)
+        
+        // Clear start time from preferences and update tracking state
+        trackingPrefs.edit()
+            .remove("sleep_start_time")
+            .putBoolean("is_tracking", false)
+            .apply()
+
+        notificationManager.updateTrackingState(false)
         
         val isGoalMet = checkGoalMet(
-            startTime = currentRecord.startTime,
+            startTime = startTime,
             endTime = endTime,
             duration = duration,
             goal = sleepGoal.value
@@ -164,7 +179,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             // Save to database
             dao.insert(
                 SleepRecordEntity(
-                    startTime = currentRecord.startTime,
+                    startTime = startTime,
                     endTime = endTime,
                     durationMinutes = duration.toMinutes(),
                     isGoalMet = isGoalMet,
@@ -189,11 +204,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             // Update tracking state
             _trackingState.value = TrackingState(
                 isTracking = false,
-                currentRecord = currentRecord.copy(
-                    endTime = endTime,
-                    duration = duration,
-                    isGoalMet = isGoalMet
-                )
+                currentRecord = SleepRecord(startTime = startTime)
             )
         }
     }
