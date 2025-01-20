@@ -15,6 +15,7 @@ import java.time.LocalTime
 import java.time.ZoneId
 import kotlin.random.Random
 import com.sleepbuddy.sleeptracker.permissions.NotificationPermissionHandler
+import java.time.format.DateTimeFormatter
 
 enum class NotificationType {
     HOUR_BEFORE,
@@ -147,24 +148,36 @@ class SleepNotificationManager(private val context: Context) {
         var hourBefore = today.atTime(bedTime.minusHours(1))
         var halfHourBefore = today.atTime(bedTime.minusMinutes(30))
         var atBedtime = today.atTime(bedTime)
-        
+
         // If times have passed for today, schedule for tomorrow
         if (now.isAfter(hourBefore)) {
             hourBefore = hourBefore.plusDays(1)
+        }
+        if (now.isAfter(halfHourBefore)) {
             halfHourBefore = halfHourBefore.plusDays(1)
+        }
+        if (now.isAfter(atBedtime)) {
             atBedtime = atBedtime.plusDays(1)
         }
 
-        scheduleNotification(hourBefore, NotificationType.HOUR_BEFORE, bedTime)
-        scheduleNotification(halfHourBefore, NotificationType.HALF_HOUR_BEFORE, bedTime)
-        scheduleNotification(atBedtime, NotificationType.BEDTIME, bedTime)
+        // Save bedtime in preferences for boot receiver
+        context.getSharedPreferences("sleep_settings", Context.MODE_PRIVATE)
+            .edit()
+            .putString("bedtime", bedTime.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            .apply()
+
+        scheduleRepeatingNotification(hourBefore, NotificationType.HOUR_BEFORE, bedTime)
+        scheduleRepeatingNotification(halfHourBefore, NotificationType.HALF_HOUR_BEFORE, bedTime)
+        scheduleRepeatingNotification(atBedtime, NotificationType.BEDTIME, bedTime)
     }
 
-    private fun scheduleNotification(
-        time: LocalDateTime,
+    private fun scheduleRepeatingNotification(
+        firstTime: LocalDateTime,
         type: NotificationType,
         bedTime: LocalTime
     ) {
+
+        println("""scheduleRepeatingNotification $type""")
         val intent = Intent(context, NotificationReceiver::class.java).apply {
             putExtra(NotificationReceiver.NOTIFICATION_TYPE, type.name)
             putExtra(NotificationReceiver.BEDTIME, bedTime.toString())
@@ -177,20 +190,25 @@ class SleepNotificationManager(private val context: Context) {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val triggerAtMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val triggerAtMillis = firstTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val intervalMillis = AlarmManager.INTERVAL_DAY // 24 hours
+
+        println("""$type, $firstTime""")
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
+                alarmManager.setRepeating(
                     AlarmManager.RTC_WAKEUP,
                     triggerAtMillis,
+                    intervalMillis,
                     pendingIntent
                 )
             }
         } else {
-            alarmManager.setExactAndAllowWhileIdle(
+            alarmManager.setRepeating(
                 AlarmManager.RTC_WAKEUP,
                 triggerAtMillis,
+                intervalMillis,
                 pendingIntent
             )
         }

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import java.time.LocalTime
+import java.time.LocalDateTime
 
 class NotificationReceiver : BroadcastReceiver() {
     companion object {
@@ -19,6 +20,11 @@ class NotificationReceiver : BroadcastReceiver() {
         if (isTracking) {
             return // Don't show notifications while tracking
         }
+
+        // Add logging to help debug notification timing
+        val now = LocalDateTime.now()
+        println("Notification received at: $now")
+        println("Notification type: ${intent.getStringExtra(NOTIFICATION_TYPE)}")
 
         when (intent.getStringExtra(NOTIFICATION_TYPE)) {
             NotificationType.HOUR_BEFORE.name -> {
