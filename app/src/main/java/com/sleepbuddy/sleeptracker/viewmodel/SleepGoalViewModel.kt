@@ -9,8 +9,6 @@ import com.sleepbuddy.sleeptracker.data.SleepRecord
 import com.sleepbuddy.sleeptracker.data.TrackingState
 import com.sleepbuddy.sleeptracker.data.database.SleepDatabase
 import com.sleepbuddy.sleeptracker.data.database.SleepRecordEntity
-import com.sleepbuddy.sleeptracker.data.database.toSleepRecord
-import com.sleepbuddy.sleeptracker.data.database.SleepRecordDao
 import com.sleepbuddy.sleeptracker.data.MascotState
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -131,65 +129,6 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                 _mascotState.value = if (isTracking) MascotState.NEUTRAL else MascotState.ANGRY
                 // Schedule next day's bedtime check
                 scheduleNextBedtimeCheck(sleepGoal.value.bedTime)
-            }
-        }
-    }
-
-    private fun scheduleNotifications(bedTime: LocalTime) {
-        notificationJob?.cancel()
-        
-        notificationJob = viewModelScope.launch {
-            while (true) {
-                val now = LocalDateTime.now()
-                val today = now.toLocalDate()
-                
-                // Calculate notification times for today
-                val hourBefore = today.atTime(bedTime.minusHours(1))
-                val halfHourBefore = today.atTime(bedTime.minusMinutes(30))
-                val atBedtime = today.atTime(bedTime)
-
-                println("""hourbefore: $hourBefore, halfHourBefore: $halfHourBefore, atbedtime: $atBedtime""")
-                
-                // Adjust to tomorrow if times have passed
-                val adjustedHourBefore = if (now.isAfter(hourBefore)) {
-                    hourBefore.plusDays(1)
-                } else hourBefore
-                
-                val adjustedHalfHourBefore = if (now.isAfter(halfHourBefore)) {
-                    halfHourBefore.plusDays(1)
-                } else halfHourBefore
-                
-                val adjustedBedtime = if (now.isAfter(atBedtime)) {
-                    atBedtime.plusDays(1)
-                } else atBedtime
-
-                // Schedule notifications
-                if (!trackingState.value.isTracking) {
-                    val delayToHourBefore = Duration.between(now, adjustedHourBefore)
-                    val delayToHalfHour = Duration.between(now, adjustedHalfHourBefore)
-                    val delayToBedtime = Duration.between(now, adjustedBedtime)
-
-                    // Schedule hour before notification
-                    delay(delayToHourBefore.toMillis())
-                    if (!trackingState.value.isTracking) {
-                        notificationManager.showHourBeforeNotification(bedTime)
-                    }
-
-                    // Schedule half hour notification
-                    delay(delayToHalfHour.minus(delayToHourBefore).toMillis())
-                    if (!trackingState.value.isTracking) {
-                        notificationManager.showHalfHourNotification(bedTime)
-                    }
-
-                    // Schedule bedtime notification
-                    delay(delayToBedtime.minus(delayToHalfHour).toMillis())
-                    if (!trackingState.value.isTracking) {
-                        notificationManager.showBedtimeNotification()
-                    }
-                }
-
-                // Wait until next day
-                delay(Duration.between(now, adjustedBedtime.plusDays(1)).toMillis())
             }
         }
     }
