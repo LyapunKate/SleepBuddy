@@ -21,6 +21,7 @@ import com.sleepbuddy.sleeptracker.ui.utils.rememberSleepStartTime
 import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import com.sleepbuddy.sleeptracker.ui.utils.rememberLastSession
 
 @Composable
 fun HomeScreen(
@@ -30,6 +31,7 @@ fun HomeScreen(
     val context = LocalContext.current
     val isTracking = rememberPreference("is_tracking", false)
     val sleepStartTime = rememberSleepStartTime()
+    val lastSession = rememberLastSession()
     val currentStreak by viewModel.currentStreak.collectAsState()
     val mascotState by viewModel.mascotState.collectAsState()
 
@@ -64,12 +66,24 @@ fun HomeScreen(
             }
 
             // Sleep time info
-            sleepStartTime.value?.let { startTime ->
-                SleepTimeInfo(
-                    startTime = startTime,
-                    isTracking = isTracking.value,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            if (isTracking.value) {
+                sleepStartTime.value?.let { startTime ->
+                    SleepTimeInfo(
+                        startTime = startTime,
+                        isTracking = true,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            } else {
+                lastSession.value?.let { session ->
+                    SleepTimeInfo(
+                        startTime = session.startTime,
+                        endTime = session.endTime,
+                        duration = session.duration,
+                        isTracking = false,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
 
             // Bottom section with streak and buttons
@@ -183,12 +197,11 @@ fun MascotAnimation(
 @Composable
 fun SleepTimeInfo(
     startTime: LocalDateTime,
+    endTime: LocalDateTime? = null,
+    duration: Duration? = null,
     isTracking: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val now = LocalDateTime.now()
-    val duration = Duration.between(startTime, now)
-    
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
@@ -200,13 +213,23 @@ fun SleepTimeInfo(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             Text(
-                text = "Sleep Start: ${startTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
+                text = stringResource(
+                    R.string.sleep_start_time,
+                    startTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
+                ),
                 style = MaterialTheme.typography.bodyLarge
             )
             
-            if (isTracking) {
+            if (!isTracking && endTime != null && duration != null) {
                 Text(
-                    text = "Current Duration: ${formatDuration(duration)}",
+                    text = "End Time: ${endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+                Text(
+                    text = stringResource(
+                        R.string.sleep_duration,
+                        formatDuration(duration)
+                    ),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }

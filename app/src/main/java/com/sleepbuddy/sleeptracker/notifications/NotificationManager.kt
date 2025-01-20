@@ -20,7 +20,8 @@ import java.time.format.DateTimeFormatter
 enum class NotificationType {
     HOUR_BEFORE,
     HALF_HOUR_BEFORE,
-    BEDTIME
+    BEDTIME,
+    STOP_TRACKING_REMINDER
 }
 
 class SleepNotificationManager(private val context: Context) {
@@ -47,6 +48,11 @@ class SleepNotificationManager(private val context: Context) {
         private val BEDTIME_MESSAGES = listOf(
             "🌟 Bedtime is here! 🛌 Stick to your plan and hit the hay to keep your streak going strong. Your dog is counting on you! 🐾",
             "🐕 Good night, champion! Let's make tonight count. Start winding down and press 'Start Sleep' when you're ready."
+        )
+
+        private val STOP_TRACKING_MESSAGES = listOf(
+            "Good morning! ☀️ Don't forget to press 'Stop' to log your sleep.",
+            "Rise and shine! Your dog wants to know how you slept—press 'Stop' to finish tracking."
         )
     }
 
@@ -171,7 +177,7 @@ class SleepNotificationManager(private val context: Context) {
         scheduleExactNotification(atBedtime, NotificationType.BEDTIME, bedTime)
     }
 
-    private fun scheduleExactNotification(
+    fun scheduleExactNotification(
         time: LocalDateTime,
         type: NotificationType,
         bedTime: LocalTime
@@ -215,6 +221,7 @@ class SleepNotificationManager(private val context: Context) {
             NotificationType.HOUR_BEFORE -> tomorrow.atTime(bedTime.minusHours(1))
             NotificationType.HALF_HOUR_BEFORE -> tomorrow.atTime(bedTime.minusMinutes(30))
             NotificationType.BEDTIME -> tomorrow.atTime(bedTime)
+            NotificationType.STOP_TRACKING_REMINDER -> return
         }
 
         scheduleExactNotification(nextTime, type, bedTime)
@@ -238,5 +245,15 @@ class SleepNotificationManager(private val context: Context) {
         if (isTracking) {
             cancelAllNotifications()
         }
+    }
+
+    fun showStopTrackingReminder() {
+        val message = STOP_TRACKING_MESSAGES[Random.nextInt(STOP_TRACKING_MESSAGES.size)]
+        
+        buildNotification(
+            "Time to Stop Tracking",
+            message,
+            4 // unique ID for stop tracking reminder
+        )
     }
 } 

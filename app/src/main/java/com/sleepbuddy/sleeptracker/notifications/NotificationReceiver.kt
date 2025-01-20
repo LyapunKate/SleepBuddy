@@ -41,6 +41,9 @@ class NotificationReceiver : BroadcastReceiver() {
                     // Schedule next day's notification
                     notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
                 }
+                NotificationType.STOP_TRACKING_REMINDER.name -> {
+                    notificationManager.showStopTrackingReminder()
+                }
             }
 
             return // Don't show notifications while tracking

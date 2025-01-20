@@ -21,6 +21,7 @@ import com.sleepbuddy.sleeptracker.data.UpdateType
 import kotlinx.coroutines.Job
 import com.sleepbuddy.sleeptracker.notifications.SleepNotificationManager
 import android.content.Context
+import com.sleepbuddy.sleeptracker.notifications.NotificationType
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
@@ -146,6 +147,17 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             .apply()
 
         notificationManager.updateTrackingState(true)
+        
+        // Calculate reminder time and schedule notification
+        val reminderTime = startTime
+            .plusMinutes((sleepGoal.value.sleepDuration * 60).toLong())
+            .plusMinutes(15)
+
+        notificationManager.scheduleExactNotification(
+            time = reminderTime,
+            type = NotificationType.STOP_TRACKING_REMINDER,
+            bedTime = sleepGoal.value.bedTime // This won't be used for this notification type
+        )
     }
 
     fun stopTracking() {
@@ -156,8 +168,11 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         val endTime = LocalDateTime.now()
         val duration = Duration.between(startTime, endTime)
         
-        // Clear start time from preferences and update tracking state
+        // Save last session info
         trackingPrefs.edit()
+            .putString("last_session_start", startTime.toString())
+            .putString("last_session_end", endTime.toString())
+            .putLong("last_session_duration", duration.toMinutes())
             .remove("sleep_start_time")
             .putBoolean("is_tracking", false)
             .apply()

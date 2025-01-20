@@ -9,6 +9,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDateTime
+import java.time.Duration
 
 @Composable
 fun rememberPreference(
@@ -58,4 +59,52 @@ fun rememberSleepStartTime(
     }
 
     return state
-} 
+}
+
+@Composable
+fun rememberLastSession(
+    preferences: SharedPreferences = LocalContext.current.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
+): State<LastSessionInfo?> {
+    val state = remember { mutableStateOf<LastSessionInfo?>(null) }
+
+    DisposableEffect(preferences) {
+        val startTimeStr = preferences.getString("last_session_start", null)
+        val endTimeStr = preferences.getString("last_session_end", null)
+        val durationMinutes = preferences.getLong("last_session_duration", 0)
+
+        if (startTimeStr != null && endTimeStr != null) {
+            state.value = LastSessionInfo(
+                startTime = LocalDateTime.parse(startTimeStr),
+                endTime = LocalDateTime.parse(endTimeStr),
+                duration = Duration.ofMinutes(durationMinutes)
+            )
+        }
+
+        val listener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, _ ->
+            val newStartTimeStr = prefs.getString("last_session_start", null)
+            val newEndTimeStr = prefs.getString("last_session_end", null)
+            val newDurationMinutes = prefs.getLong("last_session_duration", 0)
+
+            if (newStartTimeStr != null && newEndTimeStr != null) {
+                state.value = LastSessionInfo(
+                    startTime = LocalDateTime.parse(newStartTimeStr),
+                    endTime = LocalDateTime.parse(newEndTimeStr),
+                    duration = Duration.ofMinutes(newDurationMinutes)
+                )
+            }
+        }
+
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        onDispose {
+            preferences.unregisterOnSharedPreferenceChangeListener(listener)
+        }
+    }
+
+    return state
+}
+
+data class LastSessionInfo(
+    val startTime: LocalDateTime,
+    val endTime: LocalDateTime,
+    val duration: Duration
+) 
