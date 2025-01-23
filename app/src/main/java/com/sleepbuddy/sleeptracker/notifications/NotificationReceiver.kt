@@ -67,6 +67,13 @@ class NotificationReceiver : BroadcastReceiver() {
                         bedTime
                     )
                 }
+
+                NotificationType.DAILY_REMINDER.name -> {
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.DAILY_REMINDER,
+                        bedTime
+                    )
+                }
             }
         } else {
             when (intent.getStringExtra(NOTIFICATION_TYPE)) {
@@ -92,6 +99,13 @@ class NotificationReceiver : BroadcastReceiver() {
                 NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
                     notificationManager.showFiftyFiveAfterBedtimeNotification()
                     notificationManager.scheduleNextNotification(NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
+                }
+                NotificationType.DAILY_REMINDER.name -> {
+                    notificationManager.showDailyReminder()
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.DAILY_REMINDER,
+                        bedTime
+                    )
                 }
             }
         }

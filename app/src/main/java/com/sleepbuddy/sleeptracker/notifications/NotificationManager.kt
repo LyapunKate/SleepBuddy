@@ -23,7 +23,8 @@ enum class NotificationType {
     BEDTIME,
     STOP_TRACKING_REMINDER,
     FIVE_AFTER_BEDTIME,
-    FIFTY_FIVE_AFTER_BEDTIME
+    FIFTY_FIVE_AFTER_BEDTIME,
+    DAILY_REMINDER
 }
 
 class SleepNotificationManager(private val context: Context) {
@@ -66,6 +67,14 @@ class SleepNotificationManager(private val context: Context) {
             "Your dog looks worried... 🐾 It's not too late to save your streak! Go to bed now before it resets.",
             "Time's almost up! 💤 Get some rest to keep that streak going strong!"
         )
+
+        private val DAILY_REMINDER_MESSAGES = listOf(
+            "Did you know a great bedtime leads to an awesome day? Let's make tonight count!",
+            "Consistency is key! 🌟 Stick to your bedtime tonight and keep your streak strong."
+        )
+
+        private const val DAILY_REMINDER_HOUR = 15 // 3 PM
+        private const val DAILY_REMINDER_MINUTE = 0
     }
 
     init {
@@ -168,6 +177,7 @@ class SleepNotificationManager(private val context: Context) {
         var atBedtime = today.atTime(bedTime)
         var fiveAfter = today.atTime(bedTime.plusMinutes(5))
         var fiftyFiveAfter = today.atTime(bedTime.plusMinutes(55))
+        var dailyReminder = today.atTime(DAILY_REMINDER_HOUR, DAILY_REMINDER_MINUTE)
 
         // If times have passed for today, schedule for tomorrow
         if (now.isAfter(hourBefore)) {
@@ -185,6 +195,9 @@ class SleepNotificationManager(private val context: Context) {
         if (now.isAfter(fiftyFiveAfter)) {
             fiftyFiveAfter = fiftyFiveAfter.plusDays(1)
         }
+        if (now.isAfter(dailyReminder)) {
+            dailyReminder = dailyReminder.plusDays(1)
+        }
 
         // Save bedtime in preferences for boot receiver
         context.getSharedPreferences("sleep_settings", Context.MODE_PRIVATE)
@@ -197,6 +210,7 @@ class SleepNotificationManager(private val context: Context) {
         scheduleExactNotification(atBedtime, NotificationType.BEDTIME, bedTime)
         scheduleExactNotification(fiveAfter, NotificationType.FIVE_AFTER_BEDTIME, bedTime)
         scheduleExactNotification(fiftyFiveAfter, NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
+        scheduleExactNotification(dailyReminder, NotificationType.DAILY_REMINDER, bedTime)
     }
 
     fun scheduleExactNotification(
@@ -245,6 +259,7 @@ class SleepNotificationManager(private val context: Context) {
             NotificationType.BEDTIME -> tomorrow.atTime(bedTime)
             NotificationType.FIVE_AFTER_BEDTIME -> tomorrow.atTime(bedTime.plusMinutes(5))
             NotificationType.FIFTY_FIVE_AFTER_BEDTIME -> tomorrow.atTime(bedTime.plusMinutes(55))
+            NotificationType.DAILY_REMINDER -> tomorrow.atTime(DAILY_REMINDER_HOUR, DAILY_REMINDER_MINUTE)
             NotificationType.STOP_TRACKING_REMINDER -> return
         }
 
@@ -298,6 +313,16 @@ class SleepNotificationManager(private val context: Context) {
             "Last Chance for Streak",
             message,
             6 // unique ID for 55 minutes after bedtime notification
+        )
+    }
+
+    fun showDailyReminder() {
+        val message = DAILY_REMINDER_MESSAGES[Random.nextInt(DAILY_REMINDER_MESSAGES.size)]
+        
+        buildNotification(
+            "Daily Sleep Reminder",
+            message,
+            7 // unique ID for daily reminder notification
         )
     }
 } 
