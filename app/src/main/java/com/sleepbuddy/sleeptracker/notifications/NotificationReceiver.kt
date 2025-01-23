@@ -31,54 +31,68 @@ class NotificationReceiver : BroadcastReceiver() {
             when (intent.getStringExtra(NOTIFICATION_TYPE)) {
                 NotificationType.HOUR_BEFORE.name -> {
                     // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(NotificationType.HOUR_BEFORE, bedTime)
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.HOUR_BEFORE,
+                        bedTime
+                    )
                 }
+
                 NotificationType.HALF_HOUR_BEFORE.name -> {
                     // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(NotificationType.HALF_HOUR_BEFORE, bedTime)
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.HALF_HOUR_BEFORE,
+                        bedTime
+                    )
                 }
+
                 NotificationType.BEDTIME.name -> {
                     // Schedule next day's notification
                     notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
                 }
+
                 NotificationType.STOP_TRACKING_REMINDER.name -> {
                     notificationManager.showStopTrackingReminder()
                 }
+
                 NotificationType.FIVE_AFTER_BEDTIME.name -> {
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.FIVE_AFTER_BEDTIME,
+                        bedTime
+                    )
+                }
+
+                NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.FIFTY_FIVE_AFTER_BEDTIME,
+                        bedTime
+                    )
+                }
+            }
+        } else {
+            when (intent.getStringExtra(NOTIFICATION_TYPE)) {
+                NotificationType.HOUR_BEFORE.name -> {
+                    notificationManager.showHourBeforeNotification(bedTime)
+                    // Schedule next day's notification
+                    notificationManager.scheduleNextNotification(NotificationType.HOUR_BEFORE, bedTime)
+                }
+                NotificationType.HALF_HOUR_BEFORE.name -> {
+                    notificationManager.showHalfHourNotification(bedTime)
+                    // Schedule next day's notification
+                    notificationManager.scheduleNextNotification(NotificationType.HALF_HOUR_BEFORE, bedTime)
+                }
+                NotificationType.BEDTIME.name -> {
+                    notificationManager.showBedtimeNotification()
+                    // Schedule next day's notification
+                    notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
+                }
+                NotificationType.FIVE_AFTER_BEDTIME.name -> {
+                    notificationManager.showFiveAfterBedtimeNotification()
                     notificationManager.scheduleNextNotification(NotificationType.FIVE_AFTER_BEDTIME, bedTime)
                 }
                 NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
+                    notificationManager.showFiftyFiveAfterBedtimeNotification()
                     notificationManager.scheduleNextNotification(NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
                 }
-            }
-
-            return // Don't show notifications while tracking
-        }
-
-
-        when (intent.getStringExtra(NOTIFICATION_TYPE)) {
-            NotificationType.HOUR_BEFORE.name -> {
-                notificationManager.showHourBeforeNotification(bedTime)
-                // Schedule next day's notification
-                notificationManager.scheduleNextNotification(NotificationType.HOUR_BEFORE, bedTime)
-            }
-            NotificationType.HALF_HOUR_BEFORE.name -> {
-                notificationManager.showHalfHourNotification(bedTime)
-                // Schedule next day's notification
-                notificationManager.scheduleNextNotification(NotificationType.HALF_HOUR_BEFORE, bedTime)
-            }
-            NotificationType.BEDTIME.name -> {
-                notificationManager.showBedtimeNotification()
-                // Schedule next day's notification
-                notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
-            }
-            NotificationType.FIVE_AFTER_BEDTIME.name -> {
-                notificationManager.showFiveAfterBedtimeNotification()
-                notificationManager.scheduleNextNotification(NotificationType.FIVE_AFTER_BEDTIME, bedTime)
-            }
-            NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
-                notificationManager.showFiftyFiveAfterBedtimeNotification()
-                notificationManager.scheduleNextNotification(NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
             }
         }
     }
