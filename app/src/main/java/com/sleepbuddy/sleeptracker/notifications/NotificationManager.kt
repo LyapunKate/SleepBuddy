@@ -122,6 +122,7 @@ class SleepNotificationManager(private val context: Context) {
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
@@ -233,17 +234,22 @@ class SleepNotificationManager(private val context: Context) {
         val triggerAtMillis = time.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (alarmManager.canScheduleExactAlarms()) {
-                alarmManager.setExactAndAllowWhileIdle(
-                    AlarmManager.RTC_WAKEUP,
-                    triggerAtMillis,
+            if (alarmManager.canScheduleExactAlarms()) {  // Check if exact alarms are allowed
+                alarmManager.setAlarmClock(
+                    AlarmManager.AlarmClockInfo(triggerAtMillis, pendingIntent),
                     pendingIntent
                 )
             }
+            else {
+                alarmManager.setAndAllowWhileIdle(  // Fallback if exact alarms are not allowed
+                    AlarmManager.RTC_WAKEUP,
+                    triggerAtMillis,
+                    pendingIntent
+             )
+            }
         } else {
-            alarmManager.setExactAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                triggerAtMillis,
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(triggerAtMillis, pendingIntent),
                 pendingIntent
             )
         }
