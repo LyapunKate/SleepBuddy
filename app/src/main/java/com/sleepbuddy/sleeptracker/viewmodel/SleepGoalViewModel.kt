@@ -54,7 +54,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             dataStore.sleepGoal.collect { goal ->
                 _sleepGoal.value = goal
                 println("""SleepGoalViewModel""")
-                notificationManager.scheduleNotifications(goal.bedTime)
+                notificationManager.scheduleNotifications(goal.bedTime, goal.sleepDuration)
             }
         }
 

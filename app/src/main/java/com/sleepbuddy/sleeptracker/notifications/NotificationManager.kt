@@ -166,12 +166,27 @@ class SleepNotificationManager(private val context: Context) {
         notificationManager.cancelAll()
     }
 
-    fun scheduleNotifications(bedTime: LocalTime) {
+    fun scheduleNotifications(bedTime: LocalTime, sleepDuration: Float) {
         cancelAllAlarms()
-        
         val now = LocalDateTime.now()
         val today = now.toLocalDate()
-        
+
+        val startTimeStr = trackingPrefs.getString("sleep_start_time", null)
+        val startTime = startTimeStr?.let { LocalDateTime.parse(it) }
+        val isTracking = trackingPrefs.getBoolean("is_tracking", false)
+
+        if (isTracking && startTime != null) {
+            val reminderTime = startTime
+                .plusMinutes((sleepDuration * 60).toLong())
+                .plusMinutes(15)
+            if (now.isBefore(reminderTime)) {
+                scheduleExactNotification(
+                    time = reminderTime,
+                    type = NotificationType.STOP_TRACKING_REMINDER,
+                    bedTime = bedTime // This won't be used for this notification type
+                )
+            }
+        }
         // Calculate notification times
         var hourBefore = today.atTime(bedTime.minusHours(1))
         var halfHourBefore = today.atTime(bedTime.minusMinutes(30))

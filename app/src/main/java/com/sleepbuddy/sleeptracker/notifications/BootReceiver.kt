@@ -23,7 +23,7 @@ class BootReceiver : BroadcastReceiver() {
             // Launch in a coroutine since DataStore operations are suspend functions
             job = CoroutineScope(Dispatchers.IO).launch {
                 dataStore.sleepGoal.collect { goal ->
-                    notificationManager.scheduleNotifications(goal.bedTime)
+                    notificationManager.scheduleNotifications(goal.bedTime, goal.sleepDuration)
                     println("""BootReceiver""")
                     // We only need to collect once to reschedule notifications
                     job?.cancel() // Cancel the job after notifications are scheduled
