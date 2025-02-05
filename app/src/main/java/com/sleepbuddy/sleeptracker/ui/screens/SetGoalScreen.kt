@@ -14,6 +14,7 @@ import com.sleepbuddy.sleeptracker.data.SleepGoal
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
+import androidx.activity.compose.BackHandler
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -27,6 +28,8 @@ fun SetGoalScreen(
     var selectedStreak by remember { mutableStateOf(initialGoal.targetStreak) }
     var showTimePicker by remember { mutableStateOf(false) }
 
+    // Handle system back button press
+    BackHandler(onBack = onNavigateBack)
     Scaffold(
         topBar = {
             TopAppBar(
