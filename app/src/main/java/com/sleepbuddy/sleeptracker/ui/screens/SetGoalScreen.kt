@@ -15,6 +15,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 import androidx.activity.compose.BackHandler
+import androidx.compose.ui.text.style.TextAlign
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,7 +41,19 @@ fun SetGoalScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.set_sleep_goal)) },
+                title = {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.set_sleep_goal),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(
@@ -60,10 +73,15 @@ fun SetGoalScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Bed Time Section
-            Column {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = stringResource(R.string.preferred_bed_time),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 OutlinedButton(
                     onClick = { showTimePicker = true },
@@ -74,10 +92,15 @@ fun SetGoalScreen(
             }
 
             // Sleep Duration Section
-            Column {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = stringResource(R.string.sleep_duration),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Text(
                     text = stringResource(R.string.hours_value, durationSliderValue),
@@ -111,10 +134,15 @@ fun SetGoalScreen(
             }
 
             // Target Streak Section
-            Column {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(
                     text = stringResource(R.string.target_streak),
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
                 )
                 Text(
                     text = stringResource(R.string.days_value, streakSliderValue.toInt()),

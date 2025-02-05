@@ -245,7 +245,7 @@ fun SleepTimeInfo(
                 )
                 Text(
                     text = stringResource(
-                        R.string.sleep_duration,
+                        R.string.duration,
                         formatDuration(duration)
                     ),
                     style = MaterialTheme.typography.bodyLarge
