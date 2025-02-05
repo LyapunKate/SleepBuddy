@@ -251,6 +251,8 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                 newGoal.sleepDuration != sleepGoal.value.sleepDuration) {
                 
                 _currentStreak.value = 0
+                _messageState.value = MessageState.Default
+                updateMascotState(MascotState.NEUTRAL)
                 println("Last Record Before Update ${dao.getLastRecord()}")
                 // Update streak in the last record
                 dao.updateLastRecordStreak(0)
