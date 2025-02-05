@@ -217,21 +217,12 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             // If bedtime changed, reset streak
             if (newGoal.bedTime != sleepGoal.value.bedTime) {
-
                 _currentStreak.value = 0
-                // Update streak in database
-                println("Insert $newGoal")
+                println("Last Record Before Update ${dao.getLastRecord()}")
+                // Update streak in the last record
+                dao.updateLastRecordStreak(0)
                 println("Current Streak Value: ${_currentStreak.value}")
-                dao.insert(
-                    SleepRecordEntity(
-                        startTime = LocalDateTime.now(),
-                        endTime = LocalDateTime.now(),
-                        durationMinutes = 0,
-                        isGoalMet = false,
-                        currentStreak = 0
-                    )
-                )
-                println("Last Record ${dao.getLastRecord()}")
+                println("Last Record After Update ${dao.getLastRecord()}")
             }
             
             dataStore.updateSleepGoal(newGoal)

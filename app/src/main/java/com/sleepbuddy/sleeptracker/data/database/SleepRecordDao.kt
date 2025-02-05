@@ -9,6 +9,9 @@ interface SleepRecordDao {
     @Insert
     suspend fun insert(record: SleepRecordEntity)
 
+    @Query("UPDATE sleep_records SET currentStreak = :newStreak WHERE id = (SELECT id FROM sleep_records ORDER BY id DESC LIMIT 1)")
+    suspend fun updateLastRecordStreak(newStreak: Int)
+
     @Query("SELECT * FROM sleep_records ORDER BY id DESC LIMIT 1")
     suspend fun getLastRecord(): SleepRecordEntity?
 
