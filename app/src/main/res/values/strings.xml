@@ -18,4 +18,5 @@
     <string name="sleep_duration">Duration: %s</string>
     <string name="reset_progress_title">Reset Progress</string>
     <string name="reset_progress_message">Are you sure? This will reset your progress.</string>
+    <string name="save_duration">Save Duration</string>
 </resources>

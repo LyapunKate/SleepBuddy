@@ -26,9 +26,12 @@ fun SetGoalScreen(
     var selectedBedTime by remember { mutableStateOf(initialGoal.bedTime) }
     var tempSelectedTime by remember { mutableStateOf(initialGoal.bedTime) }
     var selectedDuration by remember { mutableStateOf(initialGoal.sleepDuration) }
+    var tempSelectedDuration by remember { mutableStateOf(initialGoal.sleepDuration) }
+    var durationSliderValue by remember { mutableStateOf(initialGoal.sleepDuration) }
     var selectedStreak by remember { mutableStateOf(initialGoal.targetStreak) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showConfirmationDialog by remember { mutableStateOf(false) }
+    var confirmationType by remember { mutableStateOf<ConfirmationType?>(null) }
 
     // Handle system back button press
     BackHandler(onBack = onNavigateBack)
@@ -75,16 +78,34 @@ fun SetGoalScreen(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = stringResource(R.string.hours_value, selectedDuration),
+                    text = stringResource(R.string.hours_value, durationSliderValue),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Slider(
-                    value = selectedDuration,
-                    onValueChange = { selectedDuration = it },
+                    value = durationSliderValue,
+                    onValueChange = { durationSliderValue = it },
                     valueRange = 4f..12f,
                     steps = 16,
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                // Save Duration Button
+                OutlinedButton(
+                    onClick = {
+                        tempSelectedDuration = durationSliderValue
+                        if (tempSelectedDuration != initialGoal.sleepDuration) {
+                            confirmationType = ConfirmationType.DURATION
+                            showConfirmationDialog = true
+                        } else {
+                            selectedDuration = tempSelectedDuration
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Text(stringResource(R.string.save_duration))
+                }
             }
 
             // Target Streak Section
@@ -132,11 +153,12 @@ fun SetGoalScreen(
             TimePickerDialog(
                 onDismiss = { 
                     showTimePicker = false 
-                    tempSelectedTime = selectedBedTime // Reset temp time if cancelled
+                    tempSelectedTime = selectedBedTime
                 },
                 onConfirm = { hour, minute ->
                     tempSelectedTime = LocalTime.of(hour, minute)
                     if (tempSelectedTime != initialGoal.bedTime) {
+                        confirmationType = ConfirmationType.BEDTIME
                         showConfirmationDialog = true
                     } else {
                         selectedBedTime = tempSelectedTime
@@ -151,28 +173,49 @@ fun SetGoalScreen(
             AlertDialog(
                 onDismissRequest = { 
                     showConfirmationDialog = false
-                    tempSelectedTime = selectedBedTime // Reset temp time if dismissed
+                    when (confirmationType) {
+                        ConfirmationType.BEDTIME -> tempSelectedTime = selectedBedTime
+                        ConfirmationType.DURATION -> {
+                            tempSelectedDuration = selectedDuration
+                            durationSliderValue = selectedDuration
+                        }
+                        null -> {}
+                    }
                 },
-                title = { Text("Reset Progress") },
-                text = { Text("Are you sure? This will reset your progress.") },
+                title = { Text(stringResource(R.string.reset_progress_title)) },
+                text = { Text(stringResource(R.string.reset_progress_message)) },
                 confirmButton = {
                     TextButton(
                         onClick = {
-                            selectedBedTime = tempSelectedTime
+                            when (confirmationType) {
+                                ConfirmationType.BEDTIME -> selectedBedTime = tempSelectedTime
+                                ConfirmationType.DURATION -> {
+                                    selectedDuration = tempSelectedDuration
+                                    durationSliderValue = tempSelectedDuration
+                                }
+                                null -> {}
+                            }
                             showConfirmationDialog = false
                         }
                     ) {
-                        Text("Confirm")
+                        Text(stringResource(R.string.confirm))
                     }
                 },
                 dismissButton = {
                     TextButton(
                         onClick = { 
                             showConfirmationDialog = false
-                            tempSelectedTime = selectedBedTime // Reset temp time if cancelled
+                            when (confirmationType) {
+                                ConfirmationType.BEDTIME -> tempSelectedTime = selectedBedTime
+                                ConfirmationType.DURATION -> {
+                                    tempSelectedDuration = selectedDuration
+                                    durationSliderValue = selectedDuration
+                                }
+                                null -> {}
+                            }
                         }
                     ) {
-                        Text("Cancel")
+                        Text(stringResource(R.string.cancel))
                     }
                 }
             )
@@ -218,4 +261,9 @@ private fun TimePickerDialog(
             )
         }
     )
+}
+
+private enum class ConfirmationType {
+    BEDTIME,
+    DURATION
 } 
