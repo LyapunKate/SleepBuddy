@@ -105,7 +105,11 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
             ) {
                 // Streak progress
-                StreakProgress(currentStreak = currentStreak)
+                StreakProgress(
+                    currentStreak = currentStreak,
+                    targetStreak = sleepGoal.targetStreak,
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 // Tracking button
                 Button(
@@ -166,6 +170,7 @@ fun MessageItem(
 @Composable
 fun StreakProgress(
     currentStreak: Int,
+    targetStreak: Int,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -179,7 +184,7 @@ fun StreakProgress(
         )
         
         LinearProgressIndicator(
-            progress = (currentStreak % 7) / 7f,
+            progress = (currentStreak % (targetStreak + 1)) / targetStreak.toFloat(),
             modifier = Modifier
                 .fillMaxWidth()
                 .height(8.dp)
