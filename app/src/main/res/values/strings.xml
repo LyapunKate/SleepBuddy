@@ -19,4 +19,5 @@
     <string name="reset_progress_title">Reset Progress</string>
     <string name="reset_progress_message">Are you sure? This will reset your progress.</string>
     <string name="save_duration">Save Duration</string>
+    <string name="save_target_streak">Save Target Streak</string>
 </resources>

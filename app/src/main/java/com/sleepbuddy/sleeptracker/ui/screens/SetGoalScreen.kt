@@ -29,12 +29,14 @@ fun SetGoalScreen(
     var tempSelectedDuration by remember { mutableStateOf(initialGoal.sleepDuration) }
     var durationSliderValue by remember { mutableStateOf(initialGoal.sleepDuration) }
     var selectedStreak by remember { mutableStateOf(initialGoal.targetStreak) }
+    var streakSliderValue by remember { mutableStateOf(initialGoal.targetStreak.toFloat()) }
     var showTimePicker by remember { mutableStateOf(false) }
     var showConfirmationDialog by remember { mutableStateOf(false) }
     var confirmationType by remember { mutableStateOf<ConfirmationType?>(null) }
 
     // Handle system back button press
     BackHandler(onBack = onNavigateBack)
+    
     Scaffold(
         topBar = {
             TopAppBar(
@@ -89,7 +91,6 @@ fun SetGoalScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
                 
-                // Save Duration Button
                 OutlinedButton(
                     onClick = {
                         tempSelectedDuration = durationSliderValue
@@ -98,6 +99,7 @@ fun SetGoalScreen(
                             showConfirmationDialog = true
                         } else {
                             selectedDuration = tempSelectedDuration
+                            onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
                         }
                     },
                     modifier = Modifier
@@ -115,38 +117,31 @@ fun SetGoalScreen(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = stringResource(R.string.days_value, selectedStreak),
+                    text = stringResource(R.string.days_value, streakSliderValue.toInt()),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Slider(
-                    value = selectedStreak.toFloat(),
-                    onValueChange = { selectedStreak = it.toInt() },
+                    value = streakSliderValue,
+                    onValueChange = { streakSliderValue = it },
                     valueRange = 5f..30f,
                     steps = 25,
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                OutlinedButton(
+                    onClick = {
+                        selectedStreak = streakSliderValue.toInt()
+                        onSaveGoal(initialGoal.copy(targetStreak = selectedStreak))
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 8.dp)
+                ) {
+                    Text(stringResource(R.string.save_target_streak))
+                }
             }
 
             Spacer(modifier = Modifier.weight(1f))
-
-            // Save Button
-            Button(
-                onClick = {
-                    onSaveGoal(
-                        SleepGoal(
-                            bedTime = selectedBedTime,
-                            sleepDuration = selectedDuration,
-                            targetStreak = selectedStreak
-                        )
-                    )
-                    onNavigateBack()
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-            ) {
-                Text(stringResource(R.string.save_goal))
-            }
         }
 
         if (showTimePicker) {
@@ -162,6 +157,7 @@ fun SetGoalScreen(
                         showConfirmationDialog = true
                     } else {
                         selectedBedTime = tempSelectedTime
+                        onSaveGoal(initialGoal.copy(bedTime = selectedBedTime))
                     }
                     showTimePicker = false
                 },
@@ -188,10 +184,14 @@ fun SetGoalScreen(
                     TextButton(
                         onClick = {
                             when (confirmationType) {
-                                ConfirmationType.BEDTIME -> selectedBedTime = tempSelectedTime
+                                ConfirmationType.BEDTIME -> {
+                                    selectedBedTime = tempSelectedTime
+                                    onSaveGoal(initialGoal.copy(bedTime = selectedBedTime))
+                                }
                                 ConfirmationType.DURATION -> {
                                     selectedDuration = tempSelectedDuration
                                     durationSliderValue = tempSelectedDuration
+                                    onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
                                 }
                                 null -> {}
                             }
