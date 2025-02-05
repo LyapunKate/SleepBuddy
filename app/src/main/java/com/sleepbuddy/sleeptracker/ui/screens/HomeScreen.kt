@@ -38,6 +38,11 @@ fun HomeScreen(
     val messageState by viewModel.messageState.collectAsState()
     val sleepGoal by viewModel.sleepGoal.collectAsState()
 
+    // Check streak when screen becomes active
+    LaunchedEffect(Unit) {
+        viewModel.checkAndUpdateStreak()
+    }
+
     // Update streak when sleep goal changes
     LaunchedEffect(sleepGoal.bedTime) {
         viewModel.updateStreak()

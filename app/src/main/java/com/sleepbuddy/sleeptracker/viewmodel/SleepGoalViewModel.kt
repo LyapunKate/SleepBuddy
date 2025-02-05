@@ -70,7 +70,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         }
 
         viewModelScope.launch {
-            updateStreak()
+            checkAndUpdateStreak()
         }
 
         // Register listener OUTSIDE coroutine
@@ -79,6 +79,37 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         // Load initial mascot state
         _mascotState.value = mascotPrefs.getString("current_mascot_state", null)
             ?.let { MascotState.valueOf(it) } ?: MascotState.NEUTRAL
+    }
+
+    suspend fun checkAndUpdateStreak() {
+        val isTracking = trackingPrefs.getBoolean("is_tracking", false)
+        if (!isTracking) {
+            val lastSessionEndStr = trackingPrefs.getString("last_session_end", null)
+            
+            lastSessionEndStr?.let { endTimeStr ->
+                try {
+                    val lastSessionEnd = LocalDateTime.parse(endTimeStr)
+                    val hoursSinceLastSleep = Duration.between(
+                        lastSessionEnd,
+                        LocalDateTime.now()
+                    ).toHours()
+
+                    println("Hours since last sleep: $hoursSinceLastSleep")
+                    println("Last session end time: $lastSessionEnd")
+                    println("Current time: ${LocalDateTime.now()}")
+
+                    if (hoursSinceLastSleep >= 24) {
+                        _currentStreak.value = 0
+                        // Update streak in database
+                        dao.updateLastRecordStreak(0)
+                        println("Streak reset due to inactivity. Hours since last sleep: $hoursSinceLastSleep")
+                    }
+                } catch (e: Exception) {
+                    println("Error parsing last session end time: ${e.message}")
+                }
+            }
+        }
+        updateStreak()
     }
 
     suspend fun updateStreak() {
