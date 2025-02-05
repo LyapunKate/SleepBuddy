@@ -36,6 +36,12 @@ fun HomeScreen(
     val currentStreak by viewModel.currentStreak.collectAsState()
     val mascotState by viewModel.mascotState.collectAsState()
     val messageState by viewModel.messageState.collectAsState()
+    val sleepGoal by viewModel.sleepGoal.collectAsState()
+
+    // Update streak when sleep goal changes
+    LaunchedEffect(sleepGoal.bedTime) {
+        viewModel.updateStreak()
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),

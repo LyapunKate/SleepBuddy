@@ -16,4 +16,6 @@
     <string name="navigate_back">Navigate Back</string>
     <string name="sleep_start_time">Sleep Start: %s</string>
     <string name="sleep_duration">Duration: %s</string>
+    <string name="reset_progress_title">Reset Progress</string>
+    <string name="reset_progress_message">Are you sure? This will reset your progress.</string>
 </resources>

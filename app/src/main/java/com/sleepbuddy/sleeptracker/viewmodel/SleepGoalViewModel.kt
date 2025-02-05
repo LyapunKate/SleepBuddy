@@ -81,7 +81,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             ?.let { MascotState.valueOf(it) } ?: MascotState.NEUTRAL
     }
 
-    private suspend fun updateStreak() {
+    suspend fun updateStreak() {
         val lastStreak = dao.getLastStreak() ?: 0
         _currentStreak.value = lastStreak
     }
@@ -146,6 +146,9 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             val lastStreak = dao.getLastStreak() ?: 0
             val newStreak = if (isGoalMet) lastStreak + 1 else 0
 
+            // Update streak
+            _currentStreak.value = newStreak
+
             // Save to database
             dao.insert(
                 SleepRecordEntity(
@@ -156,9 +159,6 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
                     currentStreak = newStreak
                 )
             )
-
-            // Update streak
-            _currentStreak.value = newStreak
 
             // Update message state
             _messageState.value = when {
@@ -215,8 +215,26 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun updateSleepGoal(newGoal: SleepGoal) {
         viewModelScope.launch {
+            // If bedtime changed, reset streak
+            if (newGoal.bedTime != sleepGoal.value.bedTime) {
+
+                _currentStreak.value = 0
+                // Update streak in database
+                println("Insert $newGoal")
+                println("Current Streak Value: ${_currentStreak.value}")
+                dao.insert(
+                    SleepRecordEntity(
+                        startTime = LocalDateTime.now(),
+                        endTime = LocalDateTime.now(),
+                        durationMinutes = 0,
+                        isGoalMet = false,
+                        currentStreak = 0
+                    )
+                )
+                println("Last Record ${dao.getLastRecord()}")
+            }
+            
             dataStore.updateSleepGoal(newGoal)
-            // No need to manually update _sleepGoal here as it will be updated through the DataStore collection
         }
     }
 

@@ -24,9 +24,11 @@ fun SetGoalScreen(
     onNavigateBack: () -> Unit
 ) {
     var selectedBedTime by remember { mutableStateOf(initialGoal.bedTime) }
+    var tempSelectedTime by remember { mutableStateOf(initialGoal.bedTime) }
     var selectedDuration by remember { mutableStateOf(initialGoal.sleepDuration) }
     var selectedStreak by remember { mutableStateOf(initialGoal.targetStreak) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var showConfirmationDialog by remember { mutableStateOf(false) }
 
     // Handle system back button press
     BackHandler(onBack = onNavigateBack)
@@ -128,12 +130,51 @@ fun SetGoalScreen(
 
         if (showTimePicker) {
             TimePickerDialog(
-                onDismiss = { showTimePicker = false },
+                onDismiss = { 
+                    showTimePicker = false 
+                    tempSelectedTime = selectedBedTime // Reset temp time if cancelled
+                },
                 onConfirm = { hour, minute ->
-                    selectedBedTime = LocalTime.of(hour, minute)
+                    tempSelectedTime = LocalTime.of(hour, minute)
+                    if (tempSelectedTime != initialGoal.bedTime) {
+                        showConfirmationDialog = true
+                    } else {
+                        selectedBedTime = tempSelectedTime
+                    }
                     showTimePicker = false
                 },
                 initialTime = selectedBedTime
+            )
+        }
+
+        if (showConfirmationDialog) {
+            AlertDialog(
+                onDismissRequest = { 
+                    showConfirmationDialog = false
+                    tempSelectedTime = selectedBedTime // Reset temp time if dismissed
+                },
+                title = { Text("Reset Progress") },
+                text = { Text("Are you sure? This will reset your progress.") },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            selectedBedTime = tempSelectedTime
+                            showConfirmationDialog = false
+                        }
+                    ) {
+                        Text("Confirm")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { 
+                            showConfirmationDialog = false
+                            tempSelectedTime = selectedBedTime // Reset temp time if cancelled
+                        }
+                    ) {
+                        Text("Cancel")
+                    }
+                }
             )
         }
     }
