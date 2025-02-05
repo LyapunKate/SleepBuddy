@@ -5,6 +5,10 @@ import android.content.Context
 import android.content.Intent
 import java.time.LocalTime
 import java.time.LocalDateTime
+import com.sleepbuddy.sleeptracker.data.MascotState
+import com.sleepbuddy.sleeptracker.viewmodel.SleepGoalViewModel
+import androidx.lifecycle.ViewModelProvider
+import android.app.Application
 
 class NotificationReceiver : BroadcastReceiver() {
     companion object {
@@ -25,29 +29,32 @@ class NotificationReceiver : BroadcastReceiver() {
         val bedTimeStr = intent.getStringExtra(BEDTIME) ?: return
         val bedTime = LocalTime.parse(bedTimeStr)
 
+        // Update mascot state in SharedPreferences
+        val mascotPrefs = context.getSharedPreferences("mascot_state", Context.MODE_PRIVATE)
+        
+        fun updateMascotState(state: MascotState) {
+            mascotPrefs.edit().putString("current_mascot_state", state.name).apply()
+            println("updateMascotState: ${state.name}")
+        }
+
         if (isTracking) {
-            println("""NotificationReciever, isTracking = true""")
-
             when (intent.getStringExtra(NOTIFICATION_TYPE)) {
-                NotificationType.HOUR_BEFORE.name -> {
-                    // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(
-                        NotificationType.HOUR_BEFORE,
-                        bedTime
-                    )
-                }
-
-                NotificationType.HALF_HOUR_BEFORE.name -> {
-                    // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(
-                        NotificationType.HALF_HOUR_BEFORE,
-                        bedTime
-                    )
-                }
-
+                NotificationType.HOUR_BEFORE.name,
+                NotificationType.HALF_HOUR_BEFORE.name,
                 NotificationType.BEDTIME.name -> {
-                    // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
+                    updateMascotState(MascotState.ENCOURAGING)
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.valueOf(intent.getStringExtra(NOTIFICATION_TYPE)!!),
+                        bedTime
+                    )
+                }
+
+                NotificationType.DAILY_REMINDER.name -> {
+                    updateMascotState(MascotState.NEUTRAL)
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.DAILY_REMINDER,
+                        bedTime
+                    )
                 }
 
                 NotificationType.STOP_TRACKING_REMINDER.name -> {
@@ -67,40 +74,39 @@ class NotificationReceiver : BroadcastReceiver() {
                         bedTime
                     )
                 }
-
-                NotificationType.DAILY_REMINDER.name -> {
-                    notificationManager.scheduleNextNotification(
-                        NotificationType.DAILY_REMINDER,
-                        bedTime
-                    )
-                }
             }
         } else {
             when (intent.getStringExtra(NOTIFICATION_TYPE)) {
-                NotificationType.HOUR_BEFORE.name -> {
-                    notificationManager.showHourBeforeNotification(bedTime)
-                    // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(NotificationType.HOUR_BEFORE, bedTime)
-                }
-                NotificationType.HALF_HOUR_BEFORE.name -> {
-                    notificationManager.showHalfHourNotification(bedTime)
-                    // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(NotificationType.HALF_HOUR_BEFORE, bedTime)
-                }
+                NotificationType.HOUR_BEFORE.name,
+                NotificationType.HALF_HOUR_BEFORE.name,
                 NotificationType.BEDTIME.name -> {
-                    notificationManager.showBedtimeNotification()
-                    // Schedule next day's notification
-                    notificationManager.scheduleNextNotification(NotificationType.BEDTIME, bedTime)
+                    updateMascotState(MascotState.ENCOURAGING)
+                    when (intent.getStringExtra(NOTIFICATION_TYPE)) {
+                        NotificationType.HOUR_BEFORE.name -> notificationManager.showHourBeforeNotification(bedTime)
+                        NotificationType.HALF_HOUR_BEFORE.name -> notificationManager.showHalfHourNotification(bedTime)
+                        NotificationType.BEDTIME.name -> notificationManager.showBedtimeNotification()
+                    }
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.valueOf(intent.getStringExtra(NOTIFICATION_TYPE)!!),
+                        bedTime
+                    )
                 }
-                NotificationType.FIVE_AFTER_BEDTIME.name -> {
-                    notificationManager.showFiveAfterBedtimeNotification()
-                    notificationManager.scheduleNextNotification(NotificationType.FIVE_AFTER_BEDTIME, bedTime)
-                }
+
+                NotificationType.FIVE_AFTER_BEDTIME.name,
                 NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> {
-                    notificationManager.showFiftyFiveAfterBedtimeNotification()
-                    notificationManager.scheduleNextNotification(NotificationType.FIFTY_FIVE_AFTER_BEDTIME, bedTime)
+                    updateMascotState(MascotState.ANGRY)
+                    when (intent.getStringExtra(NOTIFICATION_TYPE)) {
+                        NotificationType.FIVE_AFTER_BEDTIME.name -> notificationManager.showFiveAfterBedtimeNotification()
+                        NotificationType.FIFTY_FIVE_AFTER_BEDTIME.name -> notificationManager.showFiftyFiveAfterBedtimeNotification()
+                    }
+                    notificationManager.scheduleNextNotification(
+                        NotificationType.valueOf(intent.getStringExtra(NOTIFICATION_TYPE)!!),
+                        bedTime
+                    )
                 }
+
                 NotificationType.DAILY_REMINDER.name -> {
+                    updateMascotState(MascotState.NEUTRAL)
                     notificationManager.showDailyReminder()
                     notificationManager.scheduleNextNotification(
                         NotificationType.DAILY_REMINDER,

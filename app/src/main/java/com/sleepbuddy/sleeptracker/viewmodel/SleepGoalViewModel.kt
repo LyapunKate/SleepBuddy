@@ -14,10 +14,9 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import java.time.LocalTime
-import kotlinx.coroutines.delay
 import com.sleepbuddy.sleeptracker.notifications.SleepNotificationManager
 import android.content.Context
+import android.content.SharedPreferences
 import com.sleepbuddy.sleeptracker.notifications.NotificationType
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
@@ -42,6 +41,21 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
     private val trackingPrefs = application.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
 
+    private val mascotPrefs = application.getSharedPreferences("mascot_state", Context.MODE_PRIVATE)
+    private val mascotListener = SharedPreferences.OnSharedPreferenceChangeListener { prefs, key ->
+            if (key == "current_mascot_state") {
+                prefs.getString("current_mascot_state", null)?.let { stateName ->
+                    try {
+                        val newState = MascotState.valueOf(stateName)
+                        println("Current mascot state: $stateName")
+                        _mascotState.value = newState
+                    } catch (e: IllegalArgumentException) {
+                        // Handle invalid state name
+                    }
+                }
+            }
+        }
+
     init {
         viewModelScope.launch {
             dataStore.sleepGoal.collect { goal ->
@@ -54,6 +68,13 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         viewModelScope.launch {
             updateStreak()
         }
+
+        // Register listener OUTSIDE coroutine
+        mascotPrefs.registerOnSharedPreferenceChangeListener(mascotListener)
+
+        // Load initial mascot state
+        _mascotState.value = mascotPrefs.getString("current_mascot_state", null)
+            ?.let { MascotState.valueOf(it) } ?: MascotState.NEUTRAL
     }
 
     private suspend fun updateStreak() {
@@ -81,6 +102,8 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             type = NotificationType.STOP_TRACKING_REMINDER,
             bedTime = sleepGoal.value.bedTime // This won't be used for this notification type
         )
+
+        updateMascotState(MascotState.NEUTRAL)
     }
 
     fun stopTracking() {
@@ -148,6 +171,8 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
     fun updateMascotState(newState: MascotState) {
         _mascotState.value = newState
+        //Save to SharedPreferences so it persists
+        mascotPrefs.edit().putString("current_mascot_state", newState.name).apply()
     }
 
     private fun checkGoalMet(
@@ -159,16 +184,12 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         val durationHours = duration.toMinutes() / 60.0f
         val targetDuration = goal.sleepDuration
 
-        // Check if duration is within acceptable range
-        val isDurationValid = durationHours >= targetDuration && 
-                            durationHours <= (targetDuration + 4)
+        // Check if duration is within an acceptable range
+        val isDurationValid = durationHours in targetDuration..(targetDuration + 4)
 
-        // Convert start time to LocalTime for comparison
-        val sleepStartTime = startTime.toLocalTime()
-        val targetBedTime = goal.bedTime
-        
-        // Allow 1 hour flexibility for bed time
-        val isStartTimeValid = sleepStartTime <= targetBedTime.plusHours(1)
+        // Check bedtime (handles after-midnight cases)
+        val minutesDiff = Duration.between(goal.bedTime, startTime.toLocalTime()).toMinutes()
+        val isStartTimeValid = minutesDiff <= 60
 
         return isDurationValid && isStartTimeValid
     }
@@ -179,5 +200,11 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             dataStore.updateSleepGoal(newGoal)
             // No need to manually update _sleepGoal here as it will be updated through the DataStore collection
         }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        //Unregister listener to prevent memory leaks
+        mascotPrefs.unregisterOnSharedPreferenceChangeListener(mascotListener)
     }
 } 
