@@ -86,8 +86,8 @@ fun SetGoalScreen(
                 Slider(
                     value = durationSliderValue,
                     onValueChange = { durationSliderValue = it },
-                    valueRange = 4f..12f,
-                    steps = 16,
+                    valueRange = 5f..10f,
+                    steps = 9,
                     modifier = Modifier.fillMaxWidth()
                 )
                 
