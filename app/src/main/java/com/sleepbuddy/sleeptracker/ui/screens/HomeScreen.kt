@@ -22,6 +22,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.sleepbuddy.sleeptracker.ui.utils.rememberLastSession
+import com.sleepbuddy.sleeptracker.data.MessageState
 
 @Composable
 fun HomeScreen(
@@ -34,6 +35,7 @@ fun HomeScreen(
     val lastSession = rememberLastSession()
     val currentStreak by viewModel.currentStreak.collectAsState()
     val mascotState by viewModel.mascotState.collectAsState()
+    val messageState by viewModel.messageState.collectAsState()
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -48,7 +50,7 @@ fun HomeScreen(
         ) {
             // Message item above the mascot
             MessageItem(
-                message = stringResource(R.string.encouraging_message),
+                message = messageState.getMessage(),
                 modifier = Modifier.fillMaxWidth()
             )
 

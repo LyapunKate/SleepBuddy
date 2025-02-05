@@ -18,6 +18,7 @@ import com.sleepbuddy.sleeptracker.notifications.SleepNotificationManager
 import android.content.Context
 import android.content.SharedPreferences
 import com.sleepbuddy.sleeptracker.notifications.NotificationType
+import com.sleepbuddy.sleeptracker.data.MessageState
 
 class SleepGoalViewModel(application: Application) : AndroidViewModel(application) {
     private val dataStore = SleepGoalDataStore(application)
@@ -38,6 +39,9 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
     // Add mascot state flow
     private val _mascotState = MutableStateFlow(MascotState.NEUTRAL)
     val mascotState = _mascotState.asStateFlow()
+
+    private val _messageState = MutableStateFlow<MessageState>(MessageState.Default)
+    val messageState = _messageState.asStateFlow()
 
     private val trackingPrefs = application.getSharedPreferences("sleep_tracking", Context.MODE_PRIVATE)
 
@@ -104,6 +108,7 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
         )
 
         updateMascotState(MascotState.NEUTRAL)
+        _messageState.value = MessageState.Default
     }
 
     fun stopTracking() {
@@ -132,6 +137,10 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
             goal = sleepGoal.value
         )
 
+        // Check if duration exceeded limit
+        val durationHours = duration.toMinutes() / 60.0f
+        val exceededLimit = durationHours > (sleepGoal.value.sleepDuration + 4)
+
         viewModelScope.launch {
             // Calculate new streak based on goal achievement
             val lastStreak = dao.getLastStreak() ?: 0
@@ -150,6 +159,15 @@ class SleepGoalViewModel(application: Application) : AndroidViewModel(applicatio
 
             // Update streak
             _currentStreak.value = newStreak
+
+            // Update message state
+            _messageState.value = when {
+                newStreak == 30 -> MessageState.ThirtyDayStreak
+                newStreak == sleepGoal.value.targetStreak -> MessageState.TargetStreak
+                isGoalMet -> MessageState.GoalMet
+                exceededLimit -> MessageState.ForgotToStop
+                else -> MessageState.GoalNotMet
+            }
 
             // Update mascot state based on achievement
             val newState = when {
