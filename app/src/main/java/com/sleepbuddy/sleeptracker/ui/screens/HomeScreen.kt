@@ -109,7 +109,7 @@ fun HomeScreen(
             ) {
                 MascotAnimation(
                     mascotState = mascotState,
-                    modifier = Modifier.fillMaxSize(1f)
+                    modifier = Modifier.fillMaxSize(0.7f)
                 )
             }
 
