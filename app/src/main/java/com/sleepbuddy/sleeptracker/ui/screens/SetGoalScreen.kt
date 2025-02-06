@@ -132,7 +132,10 @@ fun SetGoalScreen(
                         onValueChange = { durationSliderValue = it },
                         valueRange = 5f..10f,
                         steps = 9,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = SliderDefaults.colors(
+                            inactiveTrackColor = MaterialTheme.colorScheme.tertiary
+                        )
                     )
                     OutlinedButton(
                         onClick = {
@@ -182,7 +185,10 @@ fun SetGoalScreen(
                         onValueChange = { streakSliderValue = it },
                         valueRange = 5f..30f,
                         steps = 25,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = SliderDefaults.colors(
+                            inactiveTrackColor = MaterialTheme.colorScheme.tertiary
+                        )
                     )
                     OutlinedButton(
                         onClick = {
