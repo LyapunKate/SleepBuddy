@@ -25,6 +25,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import com.sleepbuddy.sleeptracker.ui.utils.rememberLastSession
 import com.sleepbuddy.sleeptracker.data.MessageState
+import androidx.compose.foundation.Image
 
 @Composable
 fun HomeScreen(
@@ -240,13 +241,13 @@ fun SleepTimeInfo(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
+                Image(
                     painter = painterResource(id = R.drawable.ic_moon),
-                    contentDescription = "Bedtime",
+                    contentDescription = stringResource(R.string.bedtime),
                     modifier = Modifier.size(30.dp)
                 )
                 Text(
-                    text = "Bedtime",
+                    text = stringResource(R.string.bedtime),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
@@ -260,13 +261,13 @@ fun SleepTimeInfo(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
+                Image(
                     painter = painterResource(id = R.drawable.ic_sun),
-                    contentDescription = "Wake Up",
+                    contentDescription = stringResource(R.string.wake_up),
                     modifier = Modifier.size(30.dp)
                 )
                 Text(
-                    text = "Wake Up",
+                    text = stringResource(R.string.wake_up),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
@@ -284,13 +285,13 @@ fun SleepTimeInfo(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
+                Image(
                     painter = painterResource(id = R.drawable.ic_clock),
-                    contentDescription = "Duration",
+                    contentDescription = stringResource(R.string.duration_label),
                     modifier = Modifier.size(30.dp)
                 )
                 Text(
-                    text = "Duration",
+                    text = stringResource(R.string.duration_label),
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
