@@ -1,5 +1,7 @@
 package com.sleepbuddy.sleeptracker.ui.screens
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -7,7 +9,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.sleepbuddy.sleeptracker.R
 import com.sleepbuddy.sleeptracker.data.SleepGoal
@@ -15,7 +19,7 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 import androidx.activity.compose.BackHandler
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.layout.ContentScale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,103 +77,140 @@ fun SetGoalScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Bed Time Section
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                tonalElevation = 2.dp
             ) {
-                Text(
-                    text = stringResource(R.string.preferred_bed_time),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                OutlinedButton(
-                    onClick = { showTimePicker = true },
-                    modifier = Modifier.fillMaxWidth()
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
                 ) {
-                    Text(selectedBedTime.format(DateTimeFormatter.ofPattern("hh:mm a")))
+                    Text(
+                        text = stringResource(R.string.preferred_bed_time),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedButton(
+                        onClick = { showTimePicker = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(selectedBedTime.format(DateTimeFormatter.ofPattern("hh:mm a")))
+                    }
                 }
             }
 
             // Sleep Duration Section
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                tonalElevation = 2.dp
             ) {
-                Text(
-                    text = stringResource(R.string.sleep_duration),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = stringResource(R.string.hours_value, durationSliderValue),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Slider(
-                    value = durationSliderValue,
-                    onValueChange = { durationSliderValue = it },
-                    valueRange = 5f..10f,
-                    steps = 9,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                OutlinedButton(
-                    onClick = {
-                        tempSelectedDuration = durationSliderValue
-                        if (tempSelectedDuration != initialGoal.sleepDuration) {
-                            confirmationType = ConfirmationType.DURATION
-                            showConfirmationDialog = true
-                        } else {
-                            selectedDuration = tempSelectedDuration
-                            onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
-                        }
-                    },
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(16.dp)
                 ) {
-                    Text(stringResource(R.string.save_duration))
+                    Text(
+                        text = stringResource(R.string.sleep_duration),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = stringResource(R.string.hours_value, durationSliderValue),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Slider(
+                        value = durationSliderValue,
+                        onValueChange = { durationSliderValue = it },
+                        valueRange = 5f..10f,
+                        steps = 9,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            tempSelectedDuration = durationSliderValue
+                            if (tempSelectedDuration != initialGoal.sleepDuration) {
+                                confirmationType = ConfirmationType.DURATION
+                                showConfirmationDialog = true
+                            } else {
+                                selectedDuration = tempSelectedDuration
+                                onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        Text(stringResource(R.string.save_duration))
+                    }
                 }
             }
 
             // Target Streak Section
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                color = MaterialTheme.colorScheme.secondaryContainer,
+                tonalElevation = 2.dp
             ) {
-                Text(
-                    text = stringResource(R.string.target_streak),
-                    style = MaterialTheme.typography.titleMedium,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Text(
-                    text = stringResource(R.string.days_value, streakSliderValue.toInt()),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-                Slider(
-                    value = streakSliderValue,
-                    onValueChange = { streakSliderValue = it },
-                    valueRange = 5f..30f,
-                    steps = 25,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                
-                OutlinedButton(
-                    onClick = {
-                        selectedStreak = streakSliderValue.toInt()
-                        onSaveGoal(initialGoal.copy(targetStreak = selectedStreak))
-                    },
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 8.dp)
+                        .padding(16.dp)
                 ) {
-                    Text(stringResource(R.string.save_target_streak))
+                    Text(
+                        text = stringResource(R.string.target_streak),
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Text(
+                        text = stringResource(R.string.days_value, streakSliderValue.toInt()),
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                    Slider(
+                        value = streakSliderValue,
+                        onValueChange = { streakSliderValue = it },
+                        valueRange = 5f..30f,
+                        steps = 25,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    OutlinedButton(
+                        onClick = {
+                            selectedStreak = streakSliderValue.toInt()
+                            onSaveGoal(initialGoal.copy(targetStreak = selectedStreak))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                    ) {
+                        Text(stringResource(R.string.save_target_streak))
+                    }
                 }
             }
 
             Spacer(modifier = Modifier.weight(1f))
+
+            // Mascot Image
+            Image(
+                painter = painterResource(id = R.drawable.mascot_image),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(360.dp)
+                    .align(Alignment.CenterHorizontally),
+                contentScale = ContentScale.Fit
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
         }
 
         if (showTimePicker) {
