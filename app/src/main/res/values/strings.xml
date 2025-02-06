@@ -26,4 +26,6 @@
     <string name="duration_label">Duration</string>
     <string name="time_placeholder">--:--</string>
     <string name="duration_placeholder">--h --m</string>
+    <string name="current_streak_label">Current Streak</string>
+    <string name="days_count">%d days</string>
 </resources>

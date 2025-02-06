@@ -193,22 +193,33 @@ fun StreakProgress(
     targetStreak: Int,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.current_streak, currentStreak),
-            style = MaterialTheme.typography.titleMedium
-        )
-        
-        LinearProgressIndicator(
-            progress = (currentStreak % (targetStreak + 1)) / targetStreak.toFloat(),
+    NeumorphicSurface(modifier = modifier) {
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(8.dp)
-        )
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.current_streak_label),
+                style = MaterialTheme.typography.bodyLarge
+            )
+            
+            Text(
+                text = stringResource(R.string.days_count, currentStreak),
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+            
+            LinearProgressIndicator(
+                progress = (currentStreak % (targetStreak + 1)) / targetStreak.toFloat(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(8.dp)
+            )
+        }
     }
 }
 
