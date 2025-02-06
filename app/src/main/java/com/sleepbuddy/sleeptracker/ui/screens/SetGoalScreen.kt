@@ -113,7 +113,7 @@ fun SetGoalScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     // First line: Title and Save button
                     Row(
@@ -167,7 +167,7 @@ fun SetGoalScreen(
                             steps = 9,
                             modifier = Modifier.weight(1f),
                             colors = SliderDefaults.colors(
-                                inactiveTrackColor = MaterialTheme.colorScheme.tertiary
+                                inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
                             )
                         )
                     }
@@ -177,41 +177,60 @@ fun SetGoalScreen(
             // Target Streak Section
             NeumorphicSurface(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.target_streak),
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = stringResource(R.string.days_value, streakSliderValue.toInt()),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Slider(
-                        value = streakSliderValue,
-                        onValueChange = { streakSliderValue = it },
-                        valueRange = 5f..30f,
-                        steps = 25,
+                    // First line: Title and Save button
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = SliderDefaults.colors(
-                            inactiveTrackColor = MaterialTheme.colorScheme.tertiary
-                        )
-                    )
-                    OutlinedButton(
-                        onClick = {
-                            selectedStreak = streakSliderValue.toInt()
-                            onSaveGoal(initialGoal.copy(targetStreak = selectedStreak))
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(stringResource(R.string.save_target_streak))
+                        Text(
+                            text = stringResource(R.string.target_streak),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        
+                        IconButton(
+                            onClick = {
+                                selectedStreak = streakSliderValue.toInt()
+                                onSaveGoal(initialGoal.copy(targetStreak = selectedStreak))
+                            }
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.save_icon),
+                                contentDescription = stringResource(R.string.save_target_streak),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    // Second line: Days and Slider
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.days_value, streakSliderValue.toInt()),
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.width(120.dp)  // Fixed width for alignment
+                        )
+                        
+                        Slider(
+                            value = streakSliderValue,
+                            onValueChange = { streakSliderValue = it },
+                            valueRange = 5f..30f,
+                            steps = 25,
+                            modifier = Modifier.weight(1f),
+                            colors = SliderDefaults.colors(
+                                inactiveTrackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
+                            )
+                        )
                     }
                 }
             }
