@@ -21,4 +21,9 @@
     <string name="reset_progress_message">Are you sure? This will reset your progress.</string>
     <string name="save_duration">Save Duration</string>
     <string name="save_target_streak">Save Target Streak</string>
+    <string name="bedtime">Bedtime</string>
+    <string name="wake_up">Wake Up</string>
+    <string name="duration_label">Duration</string>
+    <string name="time_placeholder">--:--</string>
+    <string name="duration_placeholder">--h --m</string>
 </resources>

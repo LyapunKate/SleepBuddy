@@ -6,6 +6,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.layout.size
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -226,37 +228,86 @@ fun SleepTimeInfo(
         color = MaterialTheme.colorScheme.secondaryContainer,
         tonalElevation = 2.dp
     ) {
-        Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = stringResource(
-                    R.string.sleep_start_time,
-                    startTime.format(DateTimeFormatter.ofPattern("hh:mm a"))
-                ),
-                style = MaterialTheme.typography.bodyLarge
-            )
-            
-            if (!isTracking && endTime != null && duration != null) {
-                Text(
-                    text = "End Time: ${endTime.format(DateTimeFormatter.ofPattern("hh:mm a"))}",
-                    style = MaterialTheme.typography.bodyLarge
+            // Bedtime Column
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_moon),
+                    contentDescription = "Bedtime",
+                    modifier = Modifier.size(30.dp)
                 )
                 Text(
-                    text = stringResource(
-                        R.string.duration,
-                        formatDuration(duration)
-                    ),
-                    style = MaterialTheme.typography.bodyLarge
+                    text = "Bedtime",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = startTime.format(DateTimeFormatter.ofPattern("h:mm a")),
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            // Wake Up Column
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_sun),
+                    contentDescription = "Wake Up",
+                    modifier = Modifier.size(30.dp)
+                )
+                Text(
+                    text = "Wake Up",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = if (!isTracking && endTime != null) {
+                        endTime.format(DateTimeFormatter.ofPattern("h:mm a"))
+                    } else {
+                        "--:--"
+                    },
+                    style = MaterialTheme.typography.titleMedium
+                )
+            }
+
+            // Duration Column
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.ic_clock),
+                    contentDescription = "Duration",
+                    modifier = Modifier.size(30.dp)
+                )
+                Text(
+                    text = "Duration",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+                Text(
+                    text = if (!isTracking && duration != null) {
+                        formatDurationConcise(duration)
+                    } else {
+                        "--h --m"
+                    },
+                    style = MaterialTheme.typography.titleMedium
                 )
             }
         }
     }
 }
 
-private fun formatDuration(duration: Duration): String {
+private fun formatDurationConcise(duration: Duration): String {
     val hours = duration.toHours()
     val minutes = duration.toMinutesPart()
-    return String.format("%d hours %02d minutes", hours, minutes)
+    return "${hours}h ${minutes}m"
 } 
