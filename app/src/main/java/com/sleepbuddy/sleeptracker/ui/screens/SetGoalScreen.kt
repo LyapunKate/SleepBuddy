@@ -23,6 +23,12 @@ import androidx.compose.ui.layout.ContentScale
 import com.sleepbuddy.sleeptracker.ui.components.NeumorphicSurface
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.geometry.Offset
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -126,7 +132,7 @@ fun SetGoalScreen(
                             style = MaterialTheme.typography.titleMedium
                         )
                         
-                        IconButton(
+                        ShadowedSaveButton(
                             onClick = {
                                 tempSelectedDuration = durationSliderValue
                                 if (tempSelectedDuration != initialGoal.sleepDuration) {
@@ -136,14 +142,9 @@ fun SetGoalScreen(
                                     selectedDuration = tempSelectedDuration
                                     onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
                                 }
-                            }
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.save_icon),
-                                contentDescription = stringResource(R.string.save_duration),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
+                            },
+                            contentDescription = stringResource(R.string.save_duration)
+                        )
                     }
 
                     // Second line: Hours and Slider
@@ -193,18 +194,13 @@ fun SetGoalScreen(
                             style = MaterialTheme.typography.titleMedium
                         )
                         
-                        IconButton(
+                        ShadowedSaveButton(
                             onClick = {
                                 selectedStreak = streakSliderValue.toInt()
                                 onSaveGoal(initialGoal.copy(targetStreak = selectedStreak))
-                            }
-                        ) {
-                            Image(
-                                painter = painterResource(id = R.drawable.save_icon),
-                                contentDescription = stringResource(R.string.save_target_streak),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
+                            },
+                            contentDescription = stringResource(R.string.save_target_streak)
+                        )
                     }
 
                     // Second line: Days and Slider
@@ -372,4 +368,56 @@ private fun TimePickerDialog(
 private enum class ConfirmationType {
     BEDTIME,
     DURATION
+}
+
+@Composable
+private fun ShadowedSaveButton(
+    onClick: () -> Unit,
+    contentDescription: String,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .size(40.dp)
+            .background(
+                color = MaterialTheme.colorScheme.background,
+                shape = RoundedCornerShape(8.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.5f),
+                shape = RoundedCornerShape(8.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        // **Inner Shadow Effect (Dark overlay at top-left)**
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clip(RoundedCornerShape(8.dp))
+                .background(
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.Black.copy(alpha = 0.15f),  // Darker at top-left
+                            Color.Transparent                 // Fades out
+                        ),
+                        start = Offset.Zero,                      // Starts from top-left
+                        end = Offset(50f, 50f)                    // Fades towards bottom-right
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                )
+        )
+        
+        // Save icon button
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.size(36.dp)
+        ) {
+            Image(
+                painter = painterResource(id = R.drawable.save_icon),
+                contentDescription = contentDescription,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+    }
 } 
