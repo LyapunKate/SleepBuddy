@@ -26,6 +26,10 @@ import java.time.format.DateTimeFormatter
 import com.sleepbuddy.sleeptracker.ui.utils.rememberLastSession
 import com.sleepbuddy.sleeptracker.data.MessageState
 import androidx.compose.foundation.Image
+import com.sleepbuddy.sleeptracker.ui.components.NeumorphicSurface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Settings
+import androidx.compose.ui.text.font.FontWeight
 
 @Composable
 fun HomeScreen(
@@ -62,7 +66,35 @@ fun HomeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Message item above the mascot
+            // Custom header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = stringResource(R.string.app_name),
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                
+                NeumorphicSurface(
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    IconButton(
+                        onClick = onSetGoalClick,
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Settings,
+                            contentDescription = stringResource(R.string.set_sleep_goal)
+                        )
+                    }
+                }
+            }
+
+            // Message item
             MessageItem(
                 message = messageState.getMessage(),
                 modifier = Modifier.fillMaxWidth()
@@ -135,16 +167,6 @@ fun HomeScreen(
                             stringResource(R.string.start_tracking)
                     )
                 }
-
-                // Set Goal button
-                OutlinedButton(
-                    onClick = onSetGoalClick,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp)
-                ) {
-                    Text(stringResource(R.string.set_sleep_goal))
-                }
             }
         }
     }
@@ -155,12 +177,7 @@ fun MessageItem(
     message: String,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.primaryContainer,
-        tonalElevation = 2.dp
-    ) {
+    NeumorphicSurface(modifier = modifier) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyLarge,
@@ -223,12 +240,7 @@ fun SleepTimeInfo(
     isTracking: Boolean,
     modifier: Modifier = Modifier
 ) {
-    Surface(
-        modifier = modifier,
-        shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.secondaryContainer,
-        tonalElevation = 2.dp
-    ) {
+    NeumorphicSurface(modifier = modifier) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()

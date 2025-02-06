@@ -22,23 +22,14 @@ private val LightColorScheme = lightColorScheme(
     primary = Primary,
     secondary = Secondary,
     tertiary = Accent,
-    /*background = Secondary,
-    surface = Secondary,
-    primaryContainer = Accent,  // For message background
-    secondaryContainer = Accent,  // For sleep session background
-    onPrimary = Color.White,  // For button text
-    onPrimaryContainer = Color.Black,  // For text on accent background
-    onSecondaryContainer = Color.Black  // For text on accent background*/
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    background = Background,
+    surface = Surface,
+    primaryContainer = Surface,
+    secondaryContainer = Surface,
     onPrimary = Color.White,
-    onSecondary = Color.White,
-    onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    onSecondary = Primary,
+    onBackground = Primary,
+    onSurface = Primary
 )
 
 @Composable

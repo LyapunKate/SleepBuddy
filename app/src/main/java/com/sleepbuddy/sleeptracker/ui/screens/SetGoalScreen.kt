@@ -20,6 +20,8 @@ import java.time.format.DateTimeFormatter
 import kotlin.math.roundToInt
 import androidx.activity.compose.BackHandler
 import androidx.compose.ui.layout.ContentScale
+import com.sleepbuddy.sleeptracker.ui.components.NeumorphicSurface
+import androidx.compose.foundation.BorderStroke
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,12 +79,7 @@ fun SetGoalScreen(
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Bed Time Section
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                tonalElevation = 2.dp
-            ) {
+            NeumorphicSurface(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -97,7 +94,12 @@ fun SetGoalScreen(
                     )
                     OutlinedButton(
                         onClick = { showTimePicker = true },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = MaterialTheme.colorScheme.surface,
+                            contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
                     ) {
                         Text(selectedBedTime.format(DateTimeFormatter.ofPattern("hh:mm a")))
                     }
@@ -105,12 +107,7 @@ fun SetGoalScreen(
             }
 
             // Sleep Duration Section
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                tonalElevation = 2.dp
-            ) {
+            NeumorphicSurface(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
@@ -158,12 +155,7 @@ fun SetGoalScreen(
             }
 
             // Target Streak Section
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                tonalElevation = 2.dp
-            ) {
+            NeumorphicSurface(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
