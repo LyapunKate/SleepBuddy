@@ -109,7 +109,7 @@ fun HomeScreen(
             ) {
                 MascotAnimation(
                     mascotState = mascotState,
-                    modifier = Modifier.fillMaxSize(0.7f)
+                    modifier = Modifier.fillMaxSize(1f)
                 )
             }
 
@@ -217,7 +217,8 @@ fun StreakProgress(
                 progress = (currentStreak % (targetStreak + 1)) / targetStreak.toFloat(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(8.dp)
+                    .height(8.dp),
+                trackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f)
             )
         }
     }
