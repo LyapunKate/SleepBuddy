@@ -22,6 +22,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.ui.layout.ContentScale
 import com.sleepbuddy.sleeptracker.ui.components.NeumorphicSurface
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.text.font.FontWeight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -109,47 +110,66 @@ fun SetGoalScreen(
             // Sleep Duration Section
             NeumorphicSurface(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.sleep_duration),
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    Text(
-                        text = stringResource(R.string.hours_value, durationSliderValue),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
-                    Slider(
-                        value = durationSliderValue,
-                        onValueChange = { durationSliderValue = it },
-                        valueRange = 5f..10f,
-                        steps = 9,
+                    // First line: Title and Save button
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = SliderDefaults.colors(
-                            inactiveTrackColor = MaterialTheme.colorScheme.tertiary
-                        )
-                    )
-                    OutlinedButton(
-                        onClick = {
-                            tempSelectedDuration = durationSliderValue
-                            if (tempSelectedDuration != initialGoal.sleepDuration) {
-                                confirmationType = ConfirmationType.DURATION
-                                showConfirmationDialog = true
-                            } else {
-                                selectedDuration = tempSelectedDuration
-                                onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
-                            }
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 8.dp)
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(stringResource(R.string.save_duration))
+                        Text(
+                            text = stringResource(R.string.sleep_duration),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        
+                        IconButton(
+                            onClick = {
+                                tempSelectedDuration = durationSliderValue
+                                if (tempSelectedDuration != initialGoal.sleepDuration) {
+                                    confirmationType = ConfirmationType.DURATION
+                                    showConfirmationDialog = true
+                                } else {
+                                    selectedDuration = tempSelectedDuration
+                                    onSaveGoal(initialGoal.copy(sleepDuration = selectedDuration))
+                                }
+                            }
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.save_icon),
+                                contentDescription = stringResource(R.string.save_duration),
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
+                    // Second line: Hours and Slider
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.hours_value, durationSliderValue),
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.width(120.dp)  // Fixed width for alignment
+                        )
+                        
+                        Slider(
+                            value = durationSliderValue,
+                            onValueChange = { durationSliderValue = it },
+                            valueRange = 5f..10f,
+                            steps = 9,
+                            modifier = Modifier.weight(1f),
+                            colors = SliderDefaults.colors(
+                                inactiveTrackColor = MaterialTheme.colorScheme.tertiary
+                            )
+                        )
                     }
                 }
             }
