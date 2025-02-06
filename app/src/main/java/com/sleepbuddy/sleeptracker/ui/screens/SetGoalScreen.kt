@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.material.icons.filled.Close
 
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SetGoalScreen(
@@ -93,27 +94,81 @@ fun SetGoalScreen(
             // Bed Time Section
             NeumorphicSurface(modifier = Modifier.fillMaxWidth()) {
                 Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
-                    Text(
-                        text = stringResource(R.string.preferred_bed_time),
-                        style = MaterialTheme.typography.titleMedium,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedButton(
-                        onClick = { showTimePicker = true },
+                    // First line: Title and Time Button
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            containerColor = MaterialTheme.colorScheme.surface,
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(selectedBedTime.format(DateTimeFormatter.ofPattern("hh:mm a")))
+                        Text(
+                            text = stringResource(R.string.preferred_bed_time),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(
+                                    color = MaterialTheme.colorScheme.background,
+                                    shape = RoundedCornerShape(8.dp)
+                                )
+                                .border(
+                                    width = 1.dp,
+                                    color = Color.White.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(8.dp)
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            // Inner Shadow Effect
+                            Box(
+                                modifier = Modifier
+                                    .matchParentSize()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(
+                                        brush = Brush.linearGradient(
+                                            colors = listOf(
+                                                Color.Black.copy(alpha = 0.15f),
+                                                Color.Transparent
+                                            ),
+                                            start = Offset.Zero,
+                                            end = Offset(50f, 50f)
+                                        ),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                            )
+                            
+                            IconButton(
+                                onClick = { showTimePicker = true },
+                                modifier = Modifier.size(36.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.update_icon),
+                                    contentDescription = stringResource(R.string.select_bed_time),
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+
+                    }
+
+                    // Second line: Selected Time
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = selectedBedTime.format(DateTimeFormatter.ofPattern("h:mm a")),
+                            style = MaterialTheme.typography.headlineMedium.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            modifier = Modifier.fillMaxWidth()
+                        )
                     }
                 }
             }
@@ -243,7 +298,7 @@ fun SetGoalScreen(
                 painter = painterResource(id = R.drawable.mascot_image),
                 contentDescription = null,
                 modifier = Modifier
-                    .size(360.dp)
+                    .size(240.dp)
                     .align(Alignment.CenterHorizontally),
                 contentScale = ContentScale.Fit
             )
