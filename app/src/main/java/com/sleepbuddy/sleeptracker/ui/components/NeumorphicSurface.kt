@@ -19,7 +19,7 @@ fun NeumorphicSurface(
     Box(
         modifier = modifier
             .shadow(
-                elevation = 6.dp,
+                elevation = 5.dp,
                 shape = RoundedCornerShape(16.dp)
             )
             .background(
