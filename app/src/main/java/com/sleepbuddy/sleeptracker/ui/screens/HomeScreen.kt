@@ -299,7 +299,7 @@ fun SleepTimeInfo(
                     text = if (!isTracking && endTime != null) {
                         endTime.format(DateTimeFormatter.ofPattern("h:mm a"))
                     } else {
-                        "--:--"
+                        ""
                     },
                     style = MaterialTheme.typography.titleMedium
                 )
@@ -323,7 +323,7 @@ fun SleepTimeInfo(
                     text = if (!isTracking && duration != null) {
                         formatDurationConcise(duration)
                     } else {
-                        "--h --m"
+                        ""
                     },
                     style = MaterialTheme.typography.titleMedium
                 )
