@@ -30,6 +30,7 @@ import com.sleepbuddy.sleeptracker.ui.components.NeumorphicSurface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.ui.text.font.FontWeight
+import com.sleepbuddy.sleeptracker.ui.utils.IconUtils
 
 @Composable
 fun HomeScreen(
@@ -266,7 +267,7 @@ fun SleepTimeInfo(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_moon),
+                    painter = painterResource(id = IconUtils.getMoonIcon()),
                     contentDescription = stringResource(R.string.bedtime),
                     modifier = Modifier.size(30.dp)
                 )
@@ -286,7 +287,7 @@ fun SleepTimeInfo(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_sun),
+                    painter = painterResource(id = IconUtils.getSunIcon()),
                     contentDescription = stringResource(R.string.wake_up),
                     modifier = Modifier.size(30.dp)
                 )
@@ -310,7 +311,7 @@ fun SleepTimeInfo(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Image(
-                    painter = painterResource(id = R.drawable.ic_clock),
+                    painter = painterResource(id = IconUtils.getClockIcon()),
                     contentDescription = stringResource(R.string.duration_label),
                     modifier = Modifier.size(30.dp)
                 )

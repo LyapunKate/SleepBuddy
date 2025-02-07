@@ -30,6 +30,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.material.icons.filled.Close
+import com.sleepbuddy.sleeptracker.ui.utils.IconUtils
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -146,14 +147,13 @@ fun SetGoalScreen(
                                 onClick = { showTimePicker = true },
                                 modifier = Modifier.size(36.dp)
                             ) {
-                                Icon(
-                                    painter = painterResource(id = R.drawable.update_icon),
+                                Image(
+                                    painter = painterResource(id = IconUtils.getUpdateIcon()),
                                     contentDescription = stringResource(R.string.select_bed_time),
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
                         }
-
                     }
 
                     // Second line: Selected Time
@@ -474,7 +474,7 @@ private fun ShadowedSaveButton(
             modifier = Modifier.size(36.dp)
         ) {
             Image(
-                painter = painterResource(id = R.drawable.save_icon),
+                painter = painterResource(id = IconUtils.getSaveIcon()),
                 contentDescription = contentDescription,
                 modifier = Modifier.size(24.dp)
             )
