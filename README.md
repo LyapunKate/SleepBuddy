@@ -1,5 +1,5 @@
 
-## **SleepBuddy MVP Requirements**
+## **SleepBuddy**
 
 ### **Overview**
 SleepBuddy is an Android sleep-tracking app with a playful streak-based system and a mascot. The app helps users maintain consistent sleep habits through notifications, tracking, and progress visualization.
@@ -58,9 +58,11 @@ On this screen, users can:
 
 ### **Notifications**
 
-#### **1. Pre-Bedtime Reminders**
-- Triggered based on the user's bedtime setting. Do **not repeat** if dismissed.
+- Triggered based on the user's bedtime setting.
 - There are two examples for each notifications. One of them should be selected randomly each time.
+
+#### **1. Pre-Bedtime Reminders**
+
 - **1 Hour Before Bedtime**:
     - Example 1: "Hey! Just a friendly reminder: bedtime is at **selected time**. Let’s keep that streak alive! 🐾"
     - Example 2: "Your cozy bed is waiting! Get ready to wind down—just an hour left before bedtime."
@@ -113,7 +115,7 @@ On this screen, users can:
     - Start time ≤ bedtime + 1 hour.
     - Sleep duration ≥ goal duration.
 2. **Conditions to Reset Streak**:
-    - Start time > bedtime + 1 hour, **and** sleep duration < goal duration.
+    - Start time > bedtime + 1 hour, **or** sleep duration < goal duration.
     - Sleep duration exceeds goal duration by **4+ hours** (forgotten "Stop").
 3. **Milestone Triggers**:
     - Streak goals (e.g., 7, 14, 21 days) update mascot and trigger special messages.
@@ -121,22 +123,22 @@ On this screen, users can:
 ---
 ### **Messages**
 There are a few examples for some messages. One of them should be selected randomly each time.
-1. - **Success Messages** (if goal is met):
+1. **Success Messages** (if goal is met):
     - Example 1: "You did it! 🐾 Another great night of sleep. Your dog is proud!"
     - Example 2: "Look at that happy dog! 🐾 You’re crushing it. Keep up the great work!"
     - Example 3: "You're doing amazing! Every night of good sleep is a step towards a healthier you!",
     - Example 4: "You're unstoppable! Each good night's rest is fueling your best self!",
     - Example 5: "Sweet dreams lead to brighter days! You're making fantastic progress!"
-2. - **Failure Messages** (if goal is missed):
+2. **Failure Messages** (if goal is missed):
     - Example 1: "Your dog is disappointed... let’s get back on track tonight!"
     - Example 2: "Let's try one more time today! Don't let the dog be angry."
-3. - Triggered when **streak milestones** (e.g., 7, 14, 21 days) are reached:
+3. Triggered when **streak milestones** (e.g., 7, 14, 21 days) are reached:
     - Example 1: "Wow! You’ve hit a new streak milestone. Your dog thinks you’re the best sleeper ever! 🐾 Keep it up!"
-4. - For **30-day milestones**, show:
+4. For **30-day milestones**, show:
     - Example 1: "You’re on fire! 🔥 30 days of consistent sleep. Your dog is throwing a little celebration in your honor. 🐶🎉"
-5. - **Forgot to stop**  (Sleep duration exceeds goal duration by 4+ hours):
+5. **Forgot to stop**  (Sleep duration exceeds goal duration by 4+ hours):
     - Example 1: "It seems you forgot to press stop tracking, that's why the dog is angry and the progress is reset. Don't forget to track your sleep!"
-6. - **Default**:
+6. **Default**:
     - "Keep up the good work! You're building great sleep habits!",
     - "Way to go! Prioritizing your sleep is one of the best things you can do for yourself.",
     - "You're investing in your health and well-being with every night of quality sleep!",
