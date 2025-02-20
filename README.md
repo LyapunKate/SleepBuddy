@@ -20,7 +20,7 @@ SleepBuddy is an Android sleep-tracking app with a playful streak-based system a
         - Sleep duration ≥ goal duration.
         - Start time ≤ bedtime + 1 hour.
     - Streak resets if:
-        - Start time > bedtime + 1 hour and sleep duration < goal duration.
+        - Start time > bedtime + 1 hour or sleep duration < goal duration.
         - Sleep duration exceeds goal duration by **4+ hours** due to a forgotten "Stop."
 
 4. **Mascot States**:
